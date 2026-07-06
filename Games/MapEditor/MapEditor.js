@@ -52,7 +52,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.8.1",
+    VERSION: "0.8.2",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",

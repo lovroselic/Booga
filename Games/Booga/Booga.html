@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- bootstrap, css -->
+    <meta charset="UTF-8">
+    <link href="/CSS/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="/CSS/LaughingStyle.css" rel="stylesheet" type="text/css">
+
+    <!-- END -->
+
+    <title>Booga</title>
+</head>
+
+<body>
+
+    <!-- copy start-->
+    <div id="preload" class="hidden"></div>
+    <div class="container my-5 p-5 cool_page">
+        <div id="setup">
+            <div id="load"></div>
+            <div class="row win">
+                <div class="col-12 col-lg-8 my-2 ">
+                    <h1 id="title" class="BOOGA"></h1>
+                    <p>
+
+                    </p>
+                </div>
+                <div class="col-12 col-lg-4 my-2 white_text d-flex justify-content-center" id="SC"> </div>
+            </div>
+        </div>
+
+        <div class="row my-5">
+            <div id="debug" class="section">
+                <fieldset>
+                    <legend>
+                        Engine versions:
+                    </legend>
+                    <p>My custom game engine ENGINE is made from following sub-modules:</p>
+                    ENGINE: <span id="engine_version"></span><br>
+                    GRID: <span id="grid_version"></span><br>
+                    MAZE: <span id="maze_version"></span><br>
+                    IAM: <span id="iam_version"></span><br>
+                    Prototype LIB: <span id="lib_version"></span><br>
+                    WebGL: <span id="webgl_version"></span><br>
+                    MAP Tools: <span id="maptools_version"></span><br>
+                    <br>
+                    <p id="speech_sources"></p>
+                </fieldset>
+            </div>
+        </div>
+
+
+        <div>
+            <p id="buttons">
+            <div>
+                <input type='button' id='pause' value='Pause Game [F4]' disabled="disabled">
+                <input type='button' id='toggleHelp' value='Show/Hide Instructions'>
+                <input type='button' id='toggleAbout' value='About'>
+                <input type='button' id='toggleVersion' value='Version'>
+            </div>
+            </p>
+        </div>
+
+        <div id="help" class="section">
+            <fieldset>
+
+                <legend>
+                    Help:
+                </legend>
+                <div class="row">
+
+                </div>
+
+                <div class="row my-3">
+
+                    <p><strong>KEYS:</strong></p>
+                    <p><kbd>LEFT</kbd> ... jump LEFT</p>
+                    <p><kbd>RIGHT</kbd> ... jump RIGHT</p>
+                    <p><kbd>F4</kbd> ... pause/resume game</p>
+
+                </div>
+
+            </fieldset>
+        </div>
+
+        <div id="about" class="section">
+            <fieldset>
+                <legend>
+                    About:
+                </legend>
+                <div class="row">
+                    <div class="col-12 col-lg-3 my-2 d-flex align-items-center justify-content-center">
+                        <img src="/Images/Booga_Boo_C64.webp" alt="BoogaBoo (C64)" class="img-fluid border-dark rounded-2"
+                            title="BoogaBoo (C64)">
+                    </div>
+
+
+                    <div class="col-12 col-lg-6 my-2">
+                        <p>
+                            <a>
+                                <a href="https://www.c64-wiki.de/wiki/Booga_Boo" targt="_blank"></a>
+                                <a href="https://en.wikipedia.org/wiki/Bugaboo_(The_Flea)" targt="_blank"></a>
+                            </a>
+                        </p>
+                    </div>
+
+                    <div class="col-12 col-lg-3 my-2 d-flex align-items-center justify-content-center">
+                        <img src="/Images/Bugaboo_(The_Flea)_Spectrum_Screenshot.webp" alt="BoogaBoo (ZX Spectrum)" class="img-fluid border-dark rounded-2"
+                            title="BoogaBoo (ZX Spectrum)">
+                    </div>
+
+
+            </fieldset>
+        </div>
+
+        <p class="version terminal" id="version"></p>
+        <p id="conv" class="warning">Loading ... </p>
+    </div>
+
+    <div class="container">
+        <div id="game" class="winTrans"></div>
+        <div id="bottom" class="cb" style="margin-top: 1024px"></div>
+        <div id="temp" class="hidden"></div>
+        <div id="temp2" class="hidden"></div>
+    </div>
+    <!-- COPY END -->
+
+    <!-- External JS -->
+    <script src="/External/bootstrap.bundle.min.js"></script>
+    <script src="/External/jquery-3.6.0.min.js"></script>
+    <script src="/External/gl-matrix-min.js" type="text/javascript"></script>
+    <!-- JS -->
+    <script src="/Code/JS/Library/Engine/Prototype_5_04.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Engine/ENGINE_5_03.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Engine/GRID_4_04.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Engine/MAZE_5_00.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Engine/BWT_1_00.js" type="text/javascript"></script>
+    <script src='/Code/JS/Library/Engine/IndexArrayManagers_4_02.js'></script>
+    <script src="/Code/JS/Library/Engine/WebGL_2_04.js" type="text/javascript"></script>
+    <script src="/Assets/Definitions/Booga/assets_Booga.js" type="text/javascript"></script>
+    <script src="/Assets/Definitions/Booga/MAP_Booga.js" type="text/javascript"></script>
+    <script src="/Assets/Definitions/Booga/Monsters_Booga.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Engine/MAP and SPAWN tools_2_03.js" type="text/javascript"></script>
+    <script src="/Code/JS/Library/Misc/score_1_05.js" type="text/javascript"></script>
+    <script src="/Games/Booga/Booga.js" type="text/javascript"></script>
+</body>

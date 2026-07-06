@@ -17,21 +17,18 @@ LoadSheetSequences = [
 LoadFonts = [
     { srcName: "C64_Pro-STYLE.ttf", name: "C64" },
     { srcName: "ArcadeClassic.ttf", name: "Arcade" },
+    { srcName: "Booga.otf", name: "Booga" },
 ];
 
 LoadTextures = [
-    //{ srcName: "Title/Froggess_title_768.webp", name: "Title" },
+    { srcName: "Title/Booga_title_768.webp", name: "Title" },
     //{ srcName: "Title/FroggessBackground.webp", name: "FroggessBackground" },
 ];
 
 LoadAudio = [
-    //{ srcName: "Acceptance - LaughingSkull.mp3", name: "Title" },
+    { srcName: "Expect No Mercy - LaughingSkull.mp3", name: "Title" },
     //{ srcName: "death.mp3", name: "Death" },
-    //{ srcName: "ExtraLife.mp3", name: "ExtraLife" },
-    //{ srcName: "death.mp3", name: "Death" },
-    //{ srcName: "Splash.mp3", name: "Splash" },
-    //{ srcName: "Level up.mp3", name: "LevelUp" },
-    //{ srcName: "Ribbit.mp3", name: "Ribbit" },
+
 ];
 
 LoadShaders = [

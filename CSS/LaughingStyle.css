@@ -1,4 +1,4 @@
-/* LS CSS v0.10.0 */
+/* LS CSS v0.10.1 */
 
 @charset "utf-8";
 
@@ -19,12 +19,6 @@
     src: url("/Assets/Fonts/ArcadeClassic.ttf");
     font-display: swap;
 }
-
-/*@font-face {
-    font-family: 'Adore';
-    src: url("/Assets/Fonts/Adore64.ttf");
-    font-display: swap;
-}*/
 
 @font-face {
     font-family: 'Annie';
@@ -95,6 +89,12 @@
 @font-face {
     font-family: "CompSmooth";
     src: url("/Assets/Fonts/CompSmooth.ttf");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Booga";
+    src: url("/Assets/Fonts/Booga.otf");
     font-display: swap;
 }
 
@@ -668,6 +668,12 @@ h2.INV {
 
 .FROGGESS {
     font-family: 'Arcade';
+    font-size: 2.5em;
+    text-shadow: 1px 1px #666;
+}
+
+.BOOGA {
+    font-family: 'Booga';
     font-size: 2.5em;
     text-shadow: 1px 1px #666;
 }
