@@ -9,8 +9,8 @@ const INI = {
     MININT: 1,
     MAX_GRID: 64,
     MIN_GRID: 5,
-    SPACE_X: 8192 * 4,
-    SPACE_Y: 2048 * 4,
+    SPACE_X: 4192,
+    SPACE_Y: 4192,
     CANVAS_RESOLUTION: 256,
     DRAW_OCCLUSION_MAP: false,
     OCCLUSION_RESOLUTION: 4,
@@ -24,9 +24,9 @@ const INI = {
 
 const MAP = {
     Demo: {
-        name: "FROGGESS",
-        data: '{"width":"15","height":"12","depth":1,"map":"AA90Á䁁䁁5$BB4ÁÁ74BB6"}',
-        start: '[172,1]',
+        name: "Booga",
+        data: '{"width":"40","height":"40","depth":1,"map":"BB40AA1443B$BB39AA38BB38A"}',
+        start: '[1540,1]',
     }
 };
 
@@ -52,7 +52,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.8.2",
+    VERSION: "0.8.3",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -78,6 +78,7 @@ const PRG = {
         $("#selector input[name=renderer]").click(GAME.render);
         $("#corr").click(GAME.render);
         $("#coord").click(GAME.render);
+        $("#mask").click(GAME.maskVisibility);
         $("#all_coord").click(GAME.render);
         $("#grid").click(GAME.render);
 
@@ -94,6 +95,8 @@ const PRG = {
         $("#buttons").on("click", "#export", GAME.export);
         $("#buttons").on("click", "#import", GAME.import);
         $("#buttons").on("click", "#copy", GAME.copyToClipboard);
+        $("#buttons").on("click", "#create_mask", GAME.createMask);
+        $("#buttons").on("click", "#download_mask", GAME.downloadMask);
 
         MAP_TOOLS.INI.FOG = false;
         WebGL.PRUNE = false;
@@ -248,7 +251,6 @@ const GAME = {
         GAME.syncLegacyLevel(level, map);
         GAME.ensureMapArrays(map);
         if (INI.USE_TERRAIN) GAME.ensureTerrain();
-
         if (!map.startPosition) GAME.setStartPositionFromStart(map);
 
         WebGL.MOUSE.initialize("ROOM");
@@ -256,7 +258,6 @@ const GAME = {
         GAME.buildWorld(level, map);                                        // Build surface FIRST, because hero placement depends on quadMap/zMap.
 
         const start_dir = map.startPosition.vector;
-
         const start_grid = Grid.toClass(map.startPosition.grid);
         HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map);
 
@@ -372,7 +373,7 @@ const GAME = {
 
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
 
-        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid", "wall", "grid", "hint", "coord", "click"], null);
+        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid", "wall", "grid", "hint", "coord", "mask", "click"], null);
 
         if (INI.USE_NOISE_FUNCTIONS) {
             ENGINE.addBOX("ZMAP", 2048, 256, ["zmap"], null);
@@ -388,6 +389,9 @@ const GAME = {
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
         $("#buttons").append("<input type='button' id='copy' value='Copy to Clipboard'>");
+        $("#buttons").append("<input type='button' id='create_mask' value='Create Mask'>");
+        $("canvas[title = 'mask']").hide();
+        $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
 
         $("#gridsize").on("change", GAME.render);
 
@@ -879,6 +883,21 @@ const GAME = {
 
         GAME.stack.previousRadio = radio;
         GAME.render();
+    },
+    downloadMask() {
+        const RoomID = $("#roomid")[0].value;
+        ENGINE.saveCTXAsPNG(LAYER.mask, `mask_level_${RoomID}.png`);
+    },
+    createMask() {
+        const OK = confirm("Sure? Current mask will be lost.");
+        if (!OK) return;
+        console.warn("creating mask");
+        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map)
+    },
+    maskVisibility() {
+        if ($("input[name='mask']")[0].checked) {
+            $("canvas[title = 'mask']").show();
+        } else $("canvas[title = 'mask']").hide();
     },
     render(refresh3D = true) {
         const radio = $("#selector input[name=renderer]:checked").val();

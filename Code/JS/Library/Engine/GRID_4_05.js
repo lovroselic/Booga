@@ -17,7 +17,7 @@ known bugs:
 */
 
 const GRID = {
-    VERSION: "4.04",
+    VERSION: "4.05",
     CSS: "color: #0AA",
     SETTING: {
         ALLOW_CROSS: false,
@@ -859,7 +859,9 @@ const MAPDICT = {
     HOLE: 2 ** 7,                           //128
 
     //aliases
+    MASK: 2 ** 1,                           //2
     WARP: 2 ** 5,                           //32 - STAIR alias -> route to another part of the dungeon
+    GOAL: 2 ** 14,                          //16384
 
     //16 bit extension
     PILLAR: 2 ** 3,            //8

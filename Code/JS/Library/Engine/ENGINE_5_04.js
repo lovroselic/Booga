@@ -52,7 +52,7 @@ const BELOW3 = new Vector3D(0, 0, -1);
 const ABOVE3 = new Vector3D(0, 0, 1);
 
 const ENGINE = {
-    VERSION: "5.03",
+    VERSION: "5.04",
     CSS: "color: #0FA",
     COLOR: "#0FA",
     INI: {
@@ -214,6 +214,9 @@ const ENGINE = {
     clearLayer(layer) {
         let CTX = LAYER[layer];
         CTX.clearRect(0, 0, CTX.canvas.width, CTX.canvas.height);
+    },
+    clearCTX(CTX) {
+        return ENGINE.clearContext(CTX);
     },
     clearContext(CTX) {
         CTX.clearRect(0, 0, CTX.canvas.width, CTX.canvas.height);
@@ -1043,6 +1046,33 @@ const ENGINE = {
         ELEMENT[NAME].boundingBox = ELEMENT.getBoundingBox(ELEMENT[NAME]);
 
 
+    },
+    saveCTXAsPNG(CTX, filename, background = "#000000") {
+        if (!CTX || !CTX.canvas) throw new Error("saveCTXAsPNG: expected a 2D canvas context.");
+
+        const source = CTX.canvas;
+        const temp = document.createElement("canvas");
+        temp.width = source.width;
+        temp.height = source.height;
+        const TCTX = temp.getContext("2d");
+
+        TCTX.fillStyle = background;
+        TCTX.fillRect(0, 0, temp.width, temp.height);
+        TCTX.drawImage(source, 0, 0);
+
+        temp.toBlob((blob) => {
+            if (!blob) return;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, "image/png");
     },
     KEY: {
         on() {
@@ -3097,6 +3127,41 @@ const ENGINE = {
             const decalWidth = 3;
             ENGINE.DD.init(CTX, maze.GA, (ENGINE.INI.GRIDPIX / 2) - decalWidth);
             ENGINE.DD.decalDraw(maze, z);
+        },
+        /** 
+         * drawing automated mask from 2D grid slice 
+         * currently supports very black and white WALL, EMPTY
+         * */
+        drawMask(CTX, maze) {
+            //console.info("drawMask", CTX, maze);
+            const Z = 0;                                        //we are using 3D engine but only 2D slice
+            ENGINE.clearCTX(CTX);
+            const sizeX = parseInt(maze.width, 10);
+            const sizeY = parseInt(maze.height, 10);
+            for (let x = 0; x < sizeX; x++) {
+                for (let y = 0; y < sizeY; y++) {
+                    const grid = new Grid3D(x, y, Z);
+                    let value = maze.GA.getValue(grid);
+                    //console.log(x, y, value, maze.GA.isOutOfBounds(grid));
+                    switch (value) {
+                        case MAPDICT.EMPTY:
+                            ENGINE.BLOCKGRID3D.block(x, y, "#000000");
+                            break;
+                        case MAPDICT.WALL:
+                            ENGINE.BLOCKGRID3D.block(x, y, "#FFFFFF");
+                            break;
+                        default:
+                            console.warn(`drawMask not supported for value: ${value}. Ignoring!`);
+                    }
+                }
+            }
+        },
+        block(x, y, color, CTX = LAYER.mask) {
+            CTX.fillStyle = color;
+            let px = x * ENGINE.INI.GRIDPIX;
+            let py = y * ENGINE.INI.GRIDPIX;
+            CTX.fillRect(px, py, ENGINE.INI.GRIDPIX, ENGINE.INI.GRIDPIX);
+
         }
     },
     VECTOR2D: {
