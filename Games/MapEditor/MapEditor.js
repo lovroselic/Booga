@@ -20,6 +20,9 @@ const INI = {
     USE_TEXTURES: false,
     USE_TERRAIN: false,
     USE_PANORAMA: false,
+    USE_LIGHTS: false,
+    USE_DECALS: false,
+    USE_MASK: true,
 };
 
 const MAP = {
@@ -48,7 +51,8 @@ const $MAP = {
         for (const prop of this.properties) {
             this.combined.push(this.map[prop]);
         }
-    }
+    },
+    mask_moves: [],
 };
 
 const PRG = {
@@ -113,6 +117,20 @@ const PRG = {
 
         if (!INI.USE_NOISE_FUNCTIONS) {
             $("#noise_row").hide();
+        }
+
+        if (!INI.USE_LIGHTS) {
+            $("#material_light_row").hide();
+            $("#show_lights").hide();
+        }
+
+        if (!INI.USE_DECALS) {
+            $("#show_decals").hide();
+        }
+
+        if (!INI.USE_MASK) {
+            $("#show_mask_paint").hide();
+            $("#mask_export").hide();
         }
     },
     start() {
@@ -303,8 +321,7 @@ const GAME = {
         };
 
         WebGL.updateShaders();
-        const viewObject = WebGL.CONFIG.firstperson ? WebGL.hero.player : WebGL.hero.topCamera;
-        //WebGL.init("webgl", map.world, textureData, viewObject, decalsAreSet);
+        //const viewObject = WebGL.CONFIG.firstperson ? WebGL.hero.player : WebGL.hero.topCamera;
         WebGL.init2D('webgl');
         console.timeEnd("setWorld");
     },
@@ -367,13 +384,13 @@ const GAME = {
         WebGL.camera = WebGL.hero.camera2D;
     },
     setup() {
-        console.log("GAME SETUP started");
+        console.chapter("GAME SETUP started");
 
         GAME.updateWH();
 
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
 
-        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid", "wall", "grid", "hint", "coord", "mask", "click"], null);
+        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid", "wall", "hint", "mask", "coord", "grid", "click"], null);
 
         if (INI.USE_NOISE_FUNCTIONS) {
             ENGINE.addBOX("ZMAP", 2048, 256, ["zmap"], null);
@@ -390,7 +407,7 @@ const GAME = {
         $("#buttons").append("<input type='button' id='import' value='Import'>");
         $("#buttons").append("<input type='button' id='copy' value='Copy to Clipboard'>");
         $("#buttons").append("<input type='button' id='create_mask' value='Create Mask'>");
-        $("canvas[title = 'mask']").hide();
+        //$("canvas[title = 'mask']").hide();
         $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
 
         $("#gridsize").on("change", GAME.render);
@@ -450,6 +467,21 @@ const GAME = {
 
 
         GAME.updateTextures();                  //common to textures and panorama
+
+        /** mask elements */
+        if (MASK_ELEMENTS.length > 0) {
+            for (const pic of MASK_ELEMENTS) {
+                $("#mask_element").append(`<option value="${pic}">${pic}</option>`);
+            }
+            $("#mask_element").change(function () {
+                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10));
+            });
+
+            $("#mask_rotation").change(function () {
+                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10));
+            });
+            $("#mask_element").trigger("change");
+        }
 
         /** pictures */
         if (DECAL_PAINTINGS.length > 0) {
@@ -879,6 +911,21 @@ const GAME = {
 
                 }
                 break;
+
+            case "maskpaint":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        const elIndex = MASK_ELEMENTS.indexOf($("#mask_element")[0].value);
+                        const rotation = parseInt($("#mask_rotation")[0].value, 10);
+                        const image = $(`#maskcanvas`)[0].getContext("2d").canvas;
+                        $MAP.mask_moves.push([gridIndex, rotation, elIndex]);
+                        $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
+                        break;
+                    default:
+                        $("#error_message").html(`Mask not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
         }
 
         GAME.stack.previousRadio = radio;
@@ -886,18 +933,37 @@ const GAME = {
     },
     downloadMask() {
         const RoomID = $("#roomid")[0].value;
+        const gs = parseInt($("#gridsize").val(), 10);
+        if (gs !== 64) console.error("Image size usuitable for mask, gs", gs);
         ENGINE.saveCTXAsPNG(LAYER.mask, `mask_level_${RoomID}.png`);
     },
     createMask() {
         const OK = confirm("Sure? Current mask will be lost.");
         if (!OK) return;
         console.warn("creating mask");
-        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map)
+        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
     },
     maskVisibility() {
         if ($("input[name='mask']")[0].checked) {
             $("canvas[title = 'mask']").show();
         } else $("canvas[title = 'mask']").hide();
+    },
+    paintMask() {
+        //console.info("painting mask");
+        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
+        const gs = parseInt($("#gridsize").val(), 10);
+        const maskCanvasId = $("#ROOM canvas[title='mask']").attr("id");
+
+        for (const [i, mask] of $MAP.mask_moves.entries()) {
+            const gridIndex = mask[0];
+            const rotation = mask[1];
+            const element = MASK_ELEMENTS[mask[2]];
+            const grid = $MAP.map.GA.indexToGrid(gridIndex);
+            const p = GRID.gridToCoord(grid, gs);
+            const image = SPRITE[element];
+            //console.log(i, maskCanvasId, "p", p, "rotation", rotation, "element", element, "image", image);
+            ENGINE.drawRotatedToId(maskCanvasId, p.x, p.y, image, rotation, false, gs);
+        }
     },
     render(refresh3D = true) {
         const radio = $("#selector input[name=renderer]:checked").val();
@@ -923,12 +989,15 @@ const GAME = {
 
         GAME.resizeGL_window();
         if (INI.USE_QUAD_MAP) GAME.renderQuadMap(true);
+        if (INI.USE_MASK) GAME.paintMask();
 
         // refresh3D !== false is intentional:
         // jQuery event objects passed by click/change handlers should still count as "true".
-        if (refresh3D !== false && GAME.started && $MAP.map?.GA) {
+
+        /*if (refresh3D !== false && GAME.started && $MAP.map?.GA) {
             GAME.levelStart();
-        }
+        }*/
+
     },
     stack: {
         fillCount: 0,

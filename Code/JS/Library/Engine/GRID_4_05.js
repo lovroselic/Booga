@@ -126,9 +126,9 @@ const GRID = {
         let y = (grid.y + 1) * ENGINE.INI.GRIDPIX;
         return new Point(x, y);
     },
-    gridToCoord(grid) {
-        let x = Math.round(grid.x * ENGINE.INI.GRIDPIX);
-        let y = Math.round(grid.y * ENGINE.INI.GRIDPIX);
+    gridToCoord(grid, gs = ENGINE.INI.GRIDPIX) {
+        let x = Math.round(grid.x * gs);
+        let y = Math.round(grid.y * gs);
         return new Point(x, y);
     },
     coordToGrid(x, y) {

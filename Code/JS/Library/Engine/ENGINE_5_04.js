@@ -313,7 +313,7 @@ const ENGINE = {
         CTX.drawImage(image, CX, CY);
     },
     drawToGrid(layer, grid, image) {
-        let p = GRID.gridToCoord(grid);
+        const p = GRID.gridToCoord(grid);
         ENGINE.draw(layer, p.x, p.y, image);
     },
     spriteToGrid(layer, grid, image) {
@@ -321,7 +321,7 @@ const ENGINE = {
         ENGINE.spriteDraw(layer, p.x, p.y, image);
     },
     draw(layer, X, Y, image) {
-        let CTX = LAYER[layer];
+        const CTX = LAYER[layer];
         CTX.drawImage(image, X, Y);
     },
     drawToId(id, X, Y, image, clear = true, center = true) {
@@ -333,6 +333,31 @@ const ENGINE = {
             Y = (CTX.canvas.height - image.height) / 2;
         }
         CTX.drawImage(image, X, Y);
+    },
+    drawRotatedToId(id, X, Y, image, rotation = 0, clear = true, gs = ENGINE.INI.GRIDPIX) {
+        if (!image) return; // ignore silently
+
+        const canvas = $(`#${id}`)[0];
+        const CTX = canvas.getContext("2d");
+        if (clear) ENGINE.clearContext(CTX);
+        ENGINE.rotateSquare(CTX, X, Y, image, rotation);
+    },
+    rotateSquare(CTX, X, Y, image, rotation, gs = ENGINE.INI.GRIDPIX) {
+        const w = image.width;
+        const h = image.height;
+        rotation = ((rotation % 360) + 360) % 360;
+
+        // Expected limitation for mask elements:
+        if (w !== h) console.warn(`drawRotatedToId: expected square image, got ${w}x${h}, still trying but expect shit...`);
+        if (rotation % 90 !== 0) console.warn(`drawRotatedToId: rotation ${rotation} is not a multiple of 90°, will have unexpected results`);
+        const half = gs / 2;
+
+        CTX.save();
+        CTX.imageSmoothingEnabled = false;                              // Important for masks / pixel art.
+        CTX.translate(X + half, Y + half);                              // Move origin to center of destination cell.
+        CTX.rotate(rotation * Math.PI / 180);                           // Rotate around center.
+        CTX.drawImage(image, -half, -half, gs, gs);                     // Draw image centered around transformed origin.
+        CTX.restore();
     },
     drawScaled(layer, X, Y, image, scale = 1) {
         let CTX = LAYER[layer];

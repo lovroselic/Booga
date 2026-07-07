@@ -36,6 +36,13 @@ LoadShaders = [
 ];
 
 LoadSprites = [
+    //mask elements for map editor
+    { srcName: "MaskElements/CurvedTriangle.png", name: "CurvedTriangle" },
+    { srcName: "MaskElements/Peak.png", name: "Peak" },
+    { srcName: "MaskElements/Ridge.png", name: "Ridge" },
+    { srcName: "MaskElements/SharpCorner.png", name: "SharpCorner" },
+    { srcName: "MaskElements/Tit.png", name: "Tit" },
+    { srcName: "MaskElements/Triangle.png", name: "Triangle" },
     //UI
     //{ srcName: "UI/FroggessLife.png", name: "Lives" },
 

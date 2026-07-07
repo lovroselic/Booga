@@ -4,7 +4,6 @@
 <head>
     <link href="/CSS/bootstrap.min.css" rel="stylesheet" type="text/css">
     <link href="/CSS/LaughingStyle.css" rel="stylesheet" type="text/css">
-    <link href="/CSS/TrackBuilder.css" rel="stylesheet" type="text/css">
     <title>MapEditor</title>
 
 </head>
@@ -63,6 +62,7 @@
                             <span id="ENGINEgameHEIGHT"></span> / <span id="spacey"></span><br />
                         </fieldset>
 
+
                         <fieldset>
                             <legend>
                                 Renderer:
@@ -74,29 +74,31 @@
                             Coordinates
                             <input type="checkbox" id="all_coord" value="all_coord" name="all_coord">All
                             <br />
-                            <input type="checkbox" id="mask" value="mask" name="mask"> Show mask<br />
+                            <input type="checkbox" id="mask" value="mask" name="mask" checked="checked"> Show mask<br />
                         </fieldset>
 
-                        <fieldset>
-                            <legend>
-                                Material
-                            </legend>
-                            <div class="d-flex justify-content-center">
-                                <select id="materialtype"> </select>
-                            </div>
-                            <div id="material-details"></div>
-                        </fieldset>
+                        <div id="material_light_row">
+                            <fieldset>
+                                <legend>
+                                    Material
+                                </legend>
+                                <div class="d-flex justify-content-center">
+                                    <select id="materialtype"> </select>
+                                </div>
+                                <div id="material-details"></div>
+                            </fieldset>
 
-                        <fieldset>
-                            <legend>
-                                Light type
-                            </legend>
-                            <div class="d-flex justify-content-center">
-                                <select id="lighttype"> </select>
-                            </div>
-                            <div id="light-details"></div>
-                            <div id="light-code"></div>
-                        </fieldset>
+                            <fieldset>
+                                <legend>
+                                    Light type
+                                </legend>
+                                <div class="d-flex justify-content-center">
+                                    <select id="lighttype"> </select>
+                                </div>
+                                <div id="light-details"></div>
+                                <div id="light-code"></div>
+                            </fieldset>
+                        </div>
 
                         <fieldset>
                             <legend>
@@ -158,92 +160,126 @@
 
                             <input type="radio" name="painter" value="start"> Start position <br />
                             <hr>
+                            <input type="radio" name="painter" value="maskpaint" > <span style="color: blue;">Mask
+                                paint</span> <br />
+                            <hr>
                             <input type="radio" name="painter" value="cleargrid"> Clear grid <br />
                         </fieldset>
 
-                        <fieldset>
-                            <legend>
-                                Lights
-                            </legend>
-                            <div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <input type="text" id="searchLights" class="w-75" placeholder="Search lights ...">
+                        <div id="show_lights">
+                            <fieldset>
+                                <legend>
+                                    Lights
+                                </legend>
+                                <div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <input type="text" id="searchLights" class="w-75"
+                                            placeholder="Search lights ...">
+                                    </div>
+                                    <input type="button" id="randlight" value="Random [F8]" />
+                                    <div class="d-flex justify-content-center">
+                                        <select id="light_decal"> </select>
+                                    </div>
+                                    <div class="m-3">
+                                        <canvas id="lightcanvas" width="256" height="256"></canvas>
+                                    </div>
                                 </div>
-                                <input type="button" id="randlight" value="Random [F8]" />
-                                <div class="d-flex justify-content-center">
-                                    <select id="light_decal"> </select>
-                                </div>
-                                <div class="m-3">
-                                    <canvas id="lightcanvas" width="256" height="256"></canvas>
-                                </div>
-                            </div>
-                        </fieldset>
+                            </fieldset>
+                        </div>
 
                     </div>
                 </div>
 
                 <div class="col-4">
+
                     <div class="setup_container section" id="selector2">
-                        <fieldset>
-                            <legend>Wall Pictures
-                            </legend>
-                            <div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <input type="text" id="searchPics" class="w-75" placeholder="Search pics ...">
-                                </div>
 
-                                <input type="radio" name="decalusage" value="picture" checked="checked"> Use pictures
-                                <input type="button" id="randpic" value="Random [F8]" />
-                                <br />
-                                <div class="d-flex justify-content-center">
-                                    <select id="picture_decal"> </select>
-                                </div>
-                                <div class="d-flex justify-content-center m-3">
-                                    <canvas id="picturecanvas" width="256" height="256"></canvas>
-                                </div>
-                            </div>
-                        </fieldset>
+                        <div id="show_decals">
+                            <fieldset>
+                                <legend>Wall Pictures
+                                </legend>
+                                <div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <input type="text" id="searchPics" class="w-75" placeholder="Search pics ...">
+                                    </div>
 
-                        <fieldset>
-                            <legend>Crests
-                            </legend>
-                            <div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <input type="text" id="searchDecals" class="w-75" placeholder="Search decals ...">
+                                    <input type="radio" name="decalusage" value="picture" checked="checked"> Use
+                                    pictures
+                                    <input type="button" id="randpic" value="Random [F8]" />
+                                    <br />
+                                    <div class="d-flex justify-content-center">
+                                        <select id="picture_decal"> </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center m-3">
+                                        <canvas id="picturecanvas" width="256" height="256"></canvas>
+                                    </div>
                                 </div>
+                            </fieldset>
 
-                                <input type="radio" name="decalusage" value="crest"> Use crests
-                                <input type="button" id="randcrest" value="Random [F8]" />
-                                <br />
-                                <div class="d-flex justify-content-center m-3">
-                                    <select id="crest_decal"> </select>
-                                </div>
-                                <div class="d-flex justify-content-center">
-                                    <canvas id="crestcanvas" width="256" height="256"></canvas>
-                                </div>
-                            </div>
-                        </fieldset>
+                            <fieldset>
+                                <legend>Crests
+                                </legend>
+                                <div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <input type="text" id="searchDecals" class="w-75"
+                                            placeholder="Search decals ...">
+                                    </div>
 
-                        <fieldset>
-                            <legend>Textures
-                            </legend>
-                            <div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <input type="text" id="searchDecalTexture" class="w-75"
-                                        placeholder="Search textures ...">
+                                    <input type="radio" name="decalusage" value="crest"> Use crests
+                                    <input type="button" id="randcrest" value="Random [F8]" />
+                                    <br />
+                                    <div class="d-flex justify-content-center m-3">
+                                        <select id="crest_decal"> </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        <canvas id="crestcanvas" width="256" height="256"></canvas>
+                                    </div>
                                 </div>
+                            </fieldset>
 
-                                <input type="radio" name="decalusage" value="texture"> Use texture
+                            <fieldset>
+                                <legend>Textures
+                                </legend>
+                                <div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <input type="text" id="searchDecalTexture" class="w-75"
+                                            placeholder="Search textures ...">
+                                    </div>
 
-                                <br />
-                                <div class="d-flex justify-content-center">
-                                    <select id="texture_decal"> </select>
+                                    <input type="radio" name="decalusage" value="texture"> Use texture
+
+                                    <br />
+                                    <div class="d-flex justify-content-center">
+                                        <select id="texture_decal"> </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center m-3">
+                                        <canvas id="texturecanvas" width="256" height="256"></canvas>
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-center m-3">
-                                    <canvas id="texturecanvas" width="256" height="256"></canvas>
+                            </fieldset>
+                        </div>
+
+                        <div id="show_mask_paint">
+                            <fieldset>
+                                <legend>Mask elements</legend>
+                                <div>
+                                    <div class="d-flex justify-content-center">
+                                        Rotation: <select id="mask_rotation">
+                                            <option value=0>0</option>
+                                            <option value=90>90</option>
+                                            <option value=180>180</option>
+                                            <option value=270>270</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        Element:<select id="mask_element"> </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center m-3">
+                                        <canvas id="maskcanvas" width="64" height="64"></canvas>
+                                    </div>
                                 </div>
-                            </div>
-                        </fieldset>
+                            </fieldset>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -598,6 +634,19 @@
 
                         </fieldset>
                     </div>
+                </div>
+            </div>
+
+            <div class=" row" id="mask_export">
+                <div class="setup_container section">
+                    <fieldset>
+                        <legend>
+                            Mask moves:
+                        </legend>
+                        <textarea id="mask_moves_exp" style="width: 1200px; height: 128px;">
+
+                        </textarea>
+                    </fieldset>
                 </div>
             </div>
 

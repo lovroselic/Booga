@@ -7,12 +7,12 @@
 
 /** textures */
 const TEXTURE_LIST = [
-   
+
 ].sort();
 
 /** Decals */
 const DECAL_PAINTINGS = [
-   
+
 ].sort();
 
 /** Crests */
@@ -21,22 +21,28 @@ const DECAL_CRESTS = [].sort();
 
 //lights
 const LIGHT_DECALS = [
-   
+
 ].sort();
 
 //panorama
 const PANORAMA_DECALS = [
-   
+
 ].sort();
 
 //arch
 const ARCH_DECALS = [
-   
+
 ].sort();;
 
 //sky
 const SKY_DECALS = [
-    
+
+].sort();
+
+//mask elements
+
+const MASK_ELEMENTS = [
+    "CurvedTriangle", "Peak", "Ridge", "SharpCorner", "Tit", "Triangle",
 ].sort();
 
 const TRIGGER_DECALS = [];
