@@ -56,7 +56,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.8.3",
+    VERSION: "0.8.4",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -99,6 +99,7 @@ const PRG = {
         $("#buttons").on("click", "#export", GAME.export);
         $("#buttons").on("click", "#import", GAME.import);
         $("#buttons").on("click", "#copy", GAME.copyToClipboard);
+        $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
         $("#buttons").on("click", "#create_mask", GAME.createMask);
         $("#buttons").on("click", "#download_mask", GAME.downloadMask);
 
@@ -409,6 +410,7 @@ const GAME = {
         $("#buttons").append("<input type='button' id='create_mask' value='Create Mask'>");
         //$("canvas[title = 'mask']").hide();
         $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
+        $("#buttons").append("<input type='button' id='copy_mask' value='Copy MASK to Clipboard'>");
 
         $("#gridsize").on("change", GAME.render);
 
@@ -416,6 +418,7 @@ const GAME = {
         $("#fill_value").append(`<option value="${MAPDICT.EMPTY}">Space</option>`);
         $("#fill_value").append(`<option value="${MAPDICT.HOLE}">Hole</option>`);
         $("#fill_value").append(`<option value="${MAPDICT.WALL}">Wall</option>`);
+        $("#fill_value").append(`<option value="${MAPDICT.MASK}">Mask</option>`);
 
         //textures
         for (const prop of TEXTURE_LIST) {
@@ -914,12 +917,13 @@ const GAME = {
 
             case "maskpaint":
                 switch (currentValue) {
-                    case MAPDICT.EMPTY:
+                    case MAPDICT.MASK:
                         const elIndex = MASK_ELEMENTS.indexOf($("#mask_element")[0].value);
                         const rotation = parseInt($("#mask_rotation")[0].value, 10);
                         const image = $(`#maskcanvas`)[0].getContext("2d").canvas;
                         $MAP.mask_moves.push([gridIndex, rotation, elIndex]);
                         $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
+                        console.info($MAP.mask_moves);
                         break;
                     default:
                         $("#error_message").html(`Mask not supported on value: ${currentValue}`);
@@ -941,6 +945,8 @@ const GAME = {
         const OK = confirm("Sure? Current mask will be lost.");
         if (!OK) return;
         console.warn("creating mask");
+        $MAP.mask_moves.clear();
+        $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
         ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
     },
     maskVisibility() {
@@ -1215,6 +1221,12 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             NOISE_FUNCTION.generate_terrain();
         }
 
+
+        //imort masks
+        if (INI.USE_MASK){
+            $MAP.mask_moves = JSON.parse($("#mask_moves_exp").val());
+        }
+
         GAME.updateWH();
         ENGINE.resizeBOX("ROOM");
         GAME.resizeGL_window();
@@ -1226,7 +1238,15 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
     },
     async copyToClipboard() {
         let copyText = $("#exp")[0];
-        console.log("copyText", copyText);
+
+        try {
+            await navigator.clipboard.writeText(copyText.value);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    },
+    async copyMaskToClipboard() {
+        let copyText = $("#mask_moves_exp")[0];
         try {
             await navigator.clipboard.writeText(copyText.value);
         } catch (err) {

@@ -3167,13 +3167,16 @@ const ENGINE = {
                 for (let y = 0; y < sizeY; y++) {
                     const grid = new Grid3D(x, y, Z);
                     let value = maze.GA.getValue(grid);
-                    //console.log(x, y, value, maze.GA.isOutOfBounds(grid));
+
                     switch (value) {
                         case MAPDICT.EMPTY:
                             ENGINE.BLOCKGRID3D.block(x, y, "#000000");
                             break;
                         case MAPDICT.WALL:
                             ENGINE.BLOCKGRID3D.block(x, y, "#FFFFFF");
+                            break;
+                        case MAPDICT.MASK:
+                            //do nothing for those
                             break;
                         default:
                             console.warn(`drawMask not supported for value: ${value}. Ignoring!`);

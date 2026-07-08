@@ -859,7 +859,7 @@ const MAPDICT = {
     HOLE: 2 ** 7,                           //128
 
     //aliases
-    MASK: 2 ** 1,                           //2
+    MASK: 2 ** 2,                           //4
     WARP: 2 ** 5,                           //32 - STAIR alias -> route to another part of the dungeon
     GOAL: 2 ** 14,                          //16384
 

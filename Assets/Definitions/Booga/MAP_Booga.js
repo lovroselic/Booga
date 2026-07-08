@@ -16,3 +16,8 @@ const MAP = {
       start: '[1540,1]',
    }
 };
+
+/** just storage, not interpreted in game */
+const MASKS = {
+   1: {}
+};
