@@ -262,6 +262,12 @@ input[type="button"] {
 .red_button {
     background-color: red !important;
 }
+.green_button {
+    background-color: green !important;
+}
+.blue_button {
+    background-color: blue !important;
+}
 
 button {
     background-color: #d9d9b3;

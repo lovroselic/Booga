@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.1.3",
+    VERSION: "0.1.4",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",

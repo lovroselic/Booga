@@ -51,8 +51,14 @@ LoadSprites = [
     { srcName: "MaskElements/Stalag.png", name: "Stalag" },
     { srcName: "MaskElements/Third.png", name: "Third" },
     { srcName: "MaskElements/Wavy.png", name: "Wavy" },
-    { srcName: "MaskElements/Full_Ledge.png", name: "Full_Ledge"},
-    { srcName: "MaskElements/HighLedge.png", name: "HighLedge"},
+    { srcName: "MaskElements/Full_Ledge.png", name: "Full_Ledge" },
+    { srcName: "MaskElements/HighLedge.png", name: "HighLedge" },
+    { srcName: "MaskElements/HalfCorner.png", name: "HalfCorner" },
+    { srcName: "MaskElements/ThirdToZero.png", name: "ThirdToZero" },
+    { srcName: "MaskElements/CrescentLedge.png", name: "CrescentLedge" },
+    { srcName: "MaskElements/IsolatedLedge.png", name: "IsolatedLedge" },
+    { srcName: "MaskElements/HalfToZero.png", name: "HalfToZero" },
+
     //UI
     //{ srcName: "UI/FroggessLife.png", name: "Lives" },
 

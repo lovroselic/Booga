@@ -162,6 +162,8 @@
                             <hr>
                             <input type="radio" name="painter" value="maskpaint"> <span style="color: blue;">Mask
                                 paint</span> <br />
+                            <input type="radio" name="painter" value="deletemask"> <span style="color: red;">Delete
+                                mask</span> <br />
                             <hr>
                             <input type="radio" name="painter" value="cleargrid"> Clear grid <br />
                         </fieldset>
@@ -277,6 +279,9 @@
                                             <option value="1">Horizontal</option>
                                             <option value="2">Vertical</option>
                                         </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <input type="text" id="searchMasks" class="w-75" placeholder="Search masks ...">
                                     </div>
                                     <div class="d-flex justify-content-center">
                                         Element:<select id="mask_element"> </select>
@@ -651,8 +656,7 @@
                             Mask moves:
                         </legend>
                         <textarea id="mask_moves_exp" style="width: 1200px; height: 128px;">
-[[1481,0,5,0],[1478,0,5,1]]
-                        </textarea>
+[[1481,0,15,0],[1478,0,15,1],[281,0,16,0],[318,0,16,1],[1558,0,0,0],[1416,0,6,0],[1417,0,17,0],[1378,0,14,0],[1415,0,17,1],[257,0,18,0],[297,0,12,0],[296,0,17,1],[217,0,0,1],[1374,180,0,1],[176,0,5,1],[293,0,17,0],[292,0,12,0],[1298,270,11,0],[1257,0,3,1],[1217,0,9,0],[1335,0,0,0],[1256,180,16,0]]                        </textarea>
                     </fieldset>
                 </div>
             </div>
@@ -666,9 +670,9 @@
                         <textarea id="exp" style="width: 1200px; height: 256px;">
 1 : {
 name: "Booga",
-data: '{"width":"40","height":"40","depth":1,"map":"BB35AA31EAA3BAA1078BAA36BAA39BAA158BB27$BB13AA33BB75ABB3ABB49ABABB5AEBB2A"}',
+data: '{"width":"40","height":"40","depth":1,"map":"BB23AA21EABB2AA223BAA26BAA54BAA28BAA82EAEE2BAA32EE2AA5EAA143BAA36BAA4BAA36BAA3BAA38BAA128EAA162EAA45EAA42EAA103EAA49BB25$BB11EAA23BB3EAA6BB37ABB3ABB4ABB25EABABB4ABB38ABB59EBB4EABB13EE2ABB2EBB4EAA5EAA4"}',
 start: '[1540,1]',
-doors: '[1481,1478]',
+doors: '[1481,1478,281,318,1558,1416,1417,1378,1415,257,297,296,217,1374,176,293,292,1298,1257,1217,1335,1256]',
 }
         </textarea>
                     </fieldset>

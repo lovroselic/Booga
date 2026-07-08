@@ -56,7 +56,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.8.4",
+    VERSION: "0.9.0",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -406,11 +406,11 @@ const GAME = {
         $("#buttons").append("<input type='button' id='new' value='New'>");
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
-        $("#buttons").append("<input type='button' id='copy' value='Copy to Clipboard'>");
-        $("#buttons").append("<input type='button' id='create_mask' value='Create Mask'>");
+        $("#buttons").append("<input type='button' id='copy' value='Copy to Clipboard' class='green_button'>");
+        $("#buttons").append("<input type='button' id='create_mask' value='Create Mask' class='red_button'>");
         //$("canvas[title = 'mask']").hide();
         $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
-        $("#buttons").append("<input type='button' id='copy_mask' value='Copy MASK to Clipboard'>");
+        $("#buttons").append("<input type='button' id='copy_mask' value='Copy MASK to Clipboard' class='blue_button'>");
 
         $("#gridsize").on("change", GAME.render);
 
@@ -476,13 +476,12 @@ const GAME = {
             for (const pic of MASK_ELEMENTS) {
                 $("#mask_element").append(`<option value="${pic}">${pic}</option>`);
             }
-            $("#mask_element").change(function () {
-                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10), true, parseInt($("#mask_flip")[0].value, 10));
-            });
 
-            $("#mask_rotation").change(function () {
-                 ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10), true, parseInt($("#mask_flip")[0].value, 10));
-            });
+            $("#mask_element, #mask_rotation, #mask_flip").on("change",
+                () => {
+                    ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
+                });
+
             $("#mask_element").trigger("change");
         }
 
@@ -571,6 +570,7 @@ const GAME = {
         $('#searchBackPanorama').on('keyup', () => filterOptions("#backPanorama", "#searchBackPanorama"));
         $('#searchArchPanorama').on('keyup', () => filterOptions("#archPanorama", "#searchArchPanorama"));
         $('#searchSkyPanorama').on('keyup', () => filterOptions("#skyPanorama", "#searchSkyPanorama"));
+        $('#searchMasks').on('keyup', () => filterOptions("#mask_element", "#searchMasks"));
 
         /** shortcuts */
 
@@ -930,6 +930,17 @@ const GAME = {
                         return;
                 }
                 break;
+
+            case "deletemask":
+                for (let [index, mask] of $MAP.mask_moves.entries()) {
+                    if (mask[0] === gridIndex) {
+                        console.warn(`removing ${MASK_ELEMENTS[mask[2]]} at gridIndex ${gridIndex}.`);
+                        $MAP.mask_moves.splice(index, 1);
+                        break;
+                    }
+                }
+                $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
+                break;
         }
 
         GAME.stack.previousRadio = radio;
@@ -1224,7 +1235,7 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
 
 
         //imort masks
-        if (INI.USE_MASK){
+        if (INI.USE_MASK) {
             $MAP.mask_moves = JSON.parse($("#mask_moves_exp").val());
         }
 

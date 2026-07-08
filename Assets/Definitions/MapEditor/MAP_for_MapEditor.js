@@ -42,8 +42,9 @@ const SKY_DECALS = [
 //mask elements
 
 const MASK_ELEMENTS = [
-    "CurvedTriangle", "Peak", "Ridge", "SharpCorner", "Tit", "Triangle", "Circular", "Crescent", "Half", "Ledge1", "Spiky", "Stalag", "Third", "Wavy", "Full_Ledge", "HighLedge",
-].sort();
+    "CurvedTriangle", "Peak", "Ridge", "SharpCorner", "Tit", "Triangle", "Circular", "Crescent", "Half", "Ledge1", "Spiky", "Stalag", "Third", "Wavy", "Full_Ledge", "HighLedge", "HalfCorner", "ThirdToZero",
+    "CrescentLedge", "IsolatedLedge", "HalfToZero",
+];
 
 const TRIGGER_DECALS = [];
 const LAIR_DECALS = [].sort();
