@@ -477,11 +477,11 @@ const GAME = {
                 $("#mask_element").append(`<option value="${pic}">${pic}</option>`);
             }
             $("#mask_element").change(function () {
-                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10));
+                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10), true, parseInt($("#mask_flip")[0].value, 10));
             });
 
             $("#mask_rotation").change(function () {
-                ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10));
+                 ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element")[0].value], parseInt($("#mask_rotation")[0].value, 10), true, parseInt($("#mask_flip")[0].value, 10));
             });
             $("#mask_element").trigger("change");
         }
@@ -921,9 +921,9 @@ const GAME = {
                         const elIndex = MASK_ELEMENTS.indexOf($("#mask_element")[0].value);
                         const rotation = parseInt($("#mask_rotation")[0].value, 10);
                         const image = $(`#maskcanvas`)[0].getContext("2d").canvas;
-                        $MAP.mask_moves.push([gridIndex, rotation, elIndex]);
+                        const flip = parseInt($("#mask_flip")[0].value, 10);
+                        $MAP.mask_moves.push([gridIndex, rotation, elIndex, flip]);
                         $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
-                        console.info($MAP.mask_moves);
                         break;
                     default:
                         $("#error_message").html(`Mask not supported on value: ${currentValue}`);
@@ -964,11 +964,12 @@ const GAME = {
             const gridIndex = mask[0];
             const rotation = mask[1];
             const element = MASK_ELEMENTS[mask[2]];
+            const flip = mask[3];
             const grid = $MAP.map.GA.indexToGrid(gridIndex);
             const p = GRID.gridToCoord(grid, gs);
             const image = SPRITE[element];
             //console.log(i, maskCanvasId, "p", p, "rotation", rotation, "element", element, "image", image);
-            ENGINE.drawRotatedToId(maskCanvasId, p.x, p.y, image, rotation, false, gs);
+            ENGINE.drawRotatedToId(maskCanvasId, p.x, p.y, image, rotation, false, flip, gs);
         }
     },
     render(refresh3D = true) {

@@ -334,15 +334,37 @@ const ENGINE = {
         }
         CTX.drawImage(image, X, Y);
     },
-    drawRotatedToId(id, X, Y, image, rotation = 0, clear = true, gs = ENGINE.INI.GRIDPIX) {
+    drawRotatedToId(id, X, Y, image, rotation = 0, clear = true, flip = 0, gs = ENGINE.INI.GRIDPIX) {
         if (!image) return; // ignore silently
 
         const canvas = $(`#${id}`)[0];
         const CTX = canvas.getContext("2d");
         if (clear) ENGINE.clearContext(CTX);
-        ENGINE.rotateSquare(CTX, X, Y, image, rotation);
+
+        switch (flip) {
+            case 0:
+                ENGINE.rotateSquare(CTX, X, Y, image, rotation, gs);
+                break;
+            case 1:
+                ENGINE.flipSquareH(CTX, X, Y, image, rotation, gs);
+                break;
+            case 2:
+                ENGINE.flipSquareV(CTX, X, Y, image, rotation, gs);
+                break;
+            default:
+                throw new Error(`drawRotatedToId: wrong flip value '${flip}'`);
+        }
     },
-    rotateSquare(CTX, X, Y, image, rotation, gs = ENGINE.INI.GRIDPIX) {
+    rotateSquare(CTX, X, Y, image, rotation = 0, gs = ENGINE.INI.GRIDPIX) {
+        ENGINE.transformSquare(CTX, X, Y, image, rotation, gs);
+    },
+    flipSquareH(CTX, X, Y, image, rotation = 0, gs = ENGINE.INI.GRIDPIX) {
+        ENGINE.transformSquare(CTX, X, Y, image, rotation, gs, -1, 1);
+    },
+    flipSquareV(CTX, X, Y, image, rotation = 0, gs = ENGINE.INI.GRIDPIX) {
+        ENGINE.transformSquare(CTX, X, Y, image, rotation, gs, 1, -1);
+    },
+    transformSquare(CTX, X, Y, image, rotation, gs = ENGINE.INI.GRIDPIX, scaleX = 1, scaleY = 1,) {
         const w = image.width;
         const h = image.height;
         rotation = ((rotation % 360) + 360) % 360;
@@ -356,6 +378,7 @@ const ENGINE = {
         CTX.imageSmoothingEnabled = false;                              // Important for masks / pixel art.
         CTX.translate(X + half, Y + half);                              // Move origin to center of destination cell.
         CTX.rotate(rotation * Math.PI / 180);                           // Rotate around center.
+        CTX.scale(scaleX, scaleY);                                      // flip
         CTX.drawImage(image, -half, -half, gs, gs);                     // Draw image centered around transformed origin.
         CTX.restore();
     },

@@ -272,6 +272,13 @@
                                         </select>
                                     </div>
                                     <div class="d-flex justify-content-center">
+                                        Flip: <select id="mask_flip">
+                                            <option value="0">None</option>
+                                            <option value="1">Horizontal</option>
+                                            <option value="2">Vertical</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
                                         Element:<select id="mask_element"> </select>
                                     </div>
                                     <div class="d-flex justify-content-center m-3">
@@ -644,7 +651,7 @@
                             Mask moves:
                         </legend>
                         <textarea id="mask_moves_exp" style="width: 1200px; height: 128px;">
-[[1481,0,5]]
+[[1481,0,5,0],[1478,0,5,1]]
                         </textarea>
                     </fieldset>
                 </div>
