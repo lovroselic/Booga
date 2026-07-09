@@ -12,12 +12,14 @@ const INI = {
     SPACE_X: 4192,
     SPACE_Y: 4192,
     CANVAS_RESOLUTION: 256,
+    TEXTURE_RESOLUTION: 128, //320
     DRAW_OCCLUSION_MAP: false,
     OCCLUSION_RESOLUTION: 4,
     USE_NOISE_FUNCTIONS: false,
     USE_QUAD_MAP: false,
     USE_OCCLUSION_MAP: false,
-    USE_TEXTURES: false,
+    USE_TEXTURES: true,
+    USE_FLOORS: false,
     USE_TERRAIN: false,
     USE_PANORAMA: false,
     USE_LIGHTS: false,
@@ -56,7 +58,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.9.0",
+    VERSION: "0.9.2",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -102,6 +104,7 @@ const PRG = {
         $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
         $("#buttons").on("click", "#create_mask", GAME.createMask);
         $("#buttons").on("click", "#download_mask", GAME.downloadMask);
+        $("#buttons").on("click", "#textured_mask", GAME.textureToMask);
 
         MAP_TOOLS.INI.FOG = false;
         WebGL.PRUNE = false;
@@ -114,6 +117,10 @@ const PRG = {
 
         if (!INI.USE_TEXTURES) {
             $("#texture_row").hide();
+        }
+
+        if (!INI.USE_FLOORS) {
+            $("#floor_row").hide();
         }
 
         if (!INI.USE_NOISE_FUNCTIONS) {
@@ -388,10 +395,16 @@ const GAME = {
         console.chapter("GAME SETUP started");
 
         GAME.updateWH();
-
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
 
-        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid", "wall", "hint", "mask", "coord", "grid", "click"], null);
+        ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["pacgrid",
+            "wall",
+            "hint",
+            "mask",
+            "paintedmask",
+            "decals",
+            "coord", "grid",
+            "click"], null);
 
         if (INI.USE_NOISE_FUNCTIONS) {
             ENGINE.addBOX("ZMAP", 2048, 256, ["zmap"], null);
@@ -411,6 +424,7 @@ const GAME = {
         //$("canvas[title = 'mask']").hide();
         $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
         $("#buttons").append("<input type='button' id='copy_mask' value='Copy MASK to Clipboard' class='blue_button'>");
+        $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
 
         $("#gridsize").on("change", GAME.render);
 
@@ -607,6 +621,7 @@ const GAME = {
         console.log("GAME SETUP completed");
     },
     getResolution(texture) {
+        if (!texture) return null;
         return [texture.width, texture.height];
     },
     randomTexture(TextureList, id, canvas) {
@@ -639,14 +654,14 @@ const GAME = {
         ENGINE.drawToId("crestcanvas", 0, 0, ENGINE.conditionalResize(SPRITE[$("#crest_decal")[0].value], INI.CANVAS_RESOLUTION));
     },
     updateTextures(restart = true) {
-        if (!INI.USE_TEXTURES) return;
+        //if (!INI.USE_TEXTURES) return;
 
         const wallTexture = TEXTURE[$("#walltexture")[0].value];
         const floorTexture = TEXTURE[$("#floortexture")[0].value];
         const textureTexture = TEXTURE[$("#texture_decal")[0].value];
 
-        ENGINE.resizeAndFill(LAYER.wallcanvas, wallTexture, 320);
-        ENGINE.resizeAndFill(LAYER.floorcanvas, floorTexture, 320);
+        ENGINE.resizeAndFill(LAYER.wallcanvas, wallTexture, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.floorcanvas, floorTexture, INI.TEXTURE_RESOLUTION);
         ENGINE.resizeAndFill(LAYER.texturecanvas, textureTexture, INI.CANVAS_RESOLUTION);
 
         const frontPanorama = TEXTURE[$("#frontPanorama")[0].value];
@@ -656,12 +671,12 @@ const GAME = {
         const archPanorama = TEXTURE[$("#archPanorama")[0].value];
         const skyPanorama = TEXTURE[$("#skyPanorama")[0].value];
 
-        ENGINE.resizeAndFill(LAYER.frontPanoramaCanvas, frontPanorama, 320);
-        ENGINE.resizeAndFill(LAYER.leftPanoramaCanvas, leftPanorama, 320);
-        ENGINE.resizeAndFill(LAYER.rightPanoramaCanvas, rightPanorama, 320);
-        ENGINE.resizeAndFill(LAYER.backPanoramaCanvas, backPanorama, 320);
-        ENGINE.resizeAndFill(LAYER.archPanoramaCanvas, archPanorama, 320);
-        ENGINE.resizeAndFill(LAYER.skyPanoramaCanvas, skyPanorama, 320);
+        ENGINE.resizeAndFill(LAYER.frontPanoramaCanvas, frontPanorama, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.leftPanoramaCanvas, leftPanorama, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.rightPanoramaCanvas, rightPanorama, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.backPanoramaCanvas, backPanorama, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.archPanoramaCanvas, archPanorama, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.skyPanoramaCanvas, skyPanorama, INI.TEXTURE_RESOLUTION);
 
         const ids = [
             "wall_resolution",
@@ -687,12 +702,12 @@ const GAME = {
 
         for (const [i, pTexture] of textures.entries()) {
             const res = GAME.getResolution(pTexture);
-            $(`#${ids[i]}`).html(`width: ${res[0]}, height: ${res[1]}`);
+            if (res) $(`#${ids[i]}`).html(`width: ${res[0]}, height: ${res[1]}`);
         }
 
-        if (restart && GAME.started && $MAP.map?.GA) {
+        /*if (restart && GAME.started && $MAP.map?.GA) {
             GAME.levelStart();
-        }
+        }*/
     },
     repaintTextures() {
         GAME.updateTextures();
@@ -951,6 +966,7 @@ const GAME = {
         const gs = parseInt($("#gridsize").val(), 10);
         if (gs !== 64) console.error("Image size usuitable for mask, gs", gs);
         ENGINE.saveCTXAsPNG(LAYER.mask, `mask_level_${RoomID}.png`);
+        ENGINE.saveCTXAsPNG(LAYER.paintedmask, `painted_mask_level_${RoomID}.png`);
     },
     createMask() {
         const OK = confirm("Sure? Current mask will be lost.");
@@ -1142,9 +1158,11 @@ const GAME = {
         let RoomName = $("#roomname")[0].value;
 
 
-        let roomExport = `${RoomID} : {
+    let roomExport = `${RoomID} : {
 name: "${RoomName}",
-data: '${JSON.stringify(Export)}',\n`;
+data: '${JSON.stringify(Export)}',
+wall: "${$("#walltexture")[0].value}",
+`;
 
         if (INI.USE_TEXTURES) {
             `
@@ -1193,7 +1211,7 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         const SG = ImportText.extractGroup(/sg:\s(\d{1})/);
         $('#checkpoint').val(SG).trigger('change');
 
-        const Textures = ["wall", "floor"];
+        const Textures = ["wall", "floor", "ceil"];
         for (const prop of Textures) {
             const pattern = new RegExp(`${prop}:\\s"(.*)"`);
             $(`#${prop}texture`).val(ImportText.extractGroup(pattern));
@@ -1306,6 +1324,55 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             $MAP.map.terrain.slope = {};
         }
     },
+    textureToMask() {
+        console.time("applyTexture");
+        const wallTexture = TEXTURE[$("#walltexture")[0].value];
+        console.warn("wallTexture", wallTexture, typeof (wallTexture), wallTexture.constructor.name, "-", $("#walltexture")[0].value);
+        GAME.applyTextureToMask(wallTexture);
+        console.timeEnd("applyTexture");
+    },
+    applyTextureToMask(texture, maskCTX = LAYER.mask, targetCTX = LAYER.paintedmask, threshold = 128) {
+        const W = maskCTX.canvas.width;
+        const H = maskCTX.canvas.height;
+        targetCTX.clearRect(0, 0, W, H);
+        const pattern = targetCTX.createPattern(texture, "repeat");
+
+        targetCTX.save();
+        targetCTX.imageSmoothingEnabled = false;
+        targetCTX.fillStyle = pattern;
+        targetCTX.fillRect(0, 0, W, H);
+        targetCTX.restore();
+
+        //mask brightnes to alpha 
+        const maskData = maskCTX.getImageData(0, 0, W, H);
+        const data = maskData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            const brightness = (r + g + b) / 3;
+            const alpha = brightness >= threshold ? 255 : 0;
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+            data[i + 3] = alpha;
+        }
+
+        const alphaCanvas = document.createElement("canvas");
+        alphaCanvas.width = W;
+        alphaCanvas.height = H;
+        const alphaCTX = alphaCanvas.getContext("2d");
+        alphaCTX.putImageData(maskData, 0, 0);
+
+        targetCTX.save();
+        targetCTX.globalCompositeOperation = "destination-in";
+        targetCTX.drawImage(alphaCanvas, 0, 0);
+        targetCTX.globalCompositeOperation = "source-over";
+        targetCTX.restore();
+    }
 };
 
 const NOISE_FUNCTION = {

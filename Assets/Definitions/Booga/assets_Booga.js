@@ -21,8 +21,31 @@ LoadFonts = [
 ];
 
 LoadTextures = [
+    { srcName: "Wall/CaveWallBooga_210.webp", name: "CaveWallBooga_210" },
+    { srcName: "Wall/CaveWallBooga_211.webp", name: "CaveWallBooga_211" },
+    { srcName: "Wall/CaveWallBooga_212.webp", name: "CaveWallBooga_212" },
+    { srcName: "Wall/CaveWallBooga_213.webp", name: "CaveWallBooga_213" },
+    { srcName: "Wall/CaveWallBooga_214.webp", name: "CaveWallBooga_214" },
+    { srcName: "Wall/CaveWallBooga_215.webp", name: "CaveWallBooga_215" },
+    { srcName: "Wall/CaveWallBooga_216.webp", name: "CaveWallBooga_216" },
+    { srcName: "Wall/CaveWallBooga_217.webp", name: "CaveWallBooga_217" },
+    { srcName: "Wall/CaveWallBooga_218.webp", name: "CaveWallBooga_218" },
+    { srcName: "Wall/CaveWallBooga_219.webp", name: "CaveWallBooga_219" },
+    { srcName: "Wall/CaveWallBooga_220.webp", name: "CaveWallBooga_220" },
+    { srcName: "Wall/CaveWallBooga_221.webp", name: "CaveWallBooga_221" },
+    { srcName: "Wall/CaveWallBooga_222.webp", name: "CaveWallBooga_222" },
+    { srcName: "Wall/CaveWallBooga_223.webp", name: "CaveWallBooga_223" },
+    { srcName: "Wall/CaveWallBooga_224.webp", name: "CaveWallBooga_224" },
+    { srcName: "Wall/CaveWallBooga_225.webp", name: "CaveWallBooga_225" },
+    { srcName: "Wall/CaveWallBooga_226.webp", name: "CaveWallBooga_226" },
+    { srcName: "Wall/CaveWallBooga_227.webp", name: "CaveWallBooga_227" },
+    { srcName: "Wall/CaveWallBooga_228.webp", name: "CaveWallBooga_228" },
+    { srcName: "Wall/CaveWallBooga_229.webp", name: "CaveWallBooga_229" },
+    { srcName: "Wall/CaveWallBooga_230.webp", name: "CaveWallBooga_230" },
+    { srcName: "Wall/CaveWallBooga_231.webp", name: "CaveWallBooga_231" },
+    { srcName: "Wall/CaveWallBooga_232.webp", name: "CaveWallBooga_232" },
+
     { srcName: "Title/Booga_title_768.webp", name: "Title" },
-    //{ srcName: "Title/FroggessBackground.webp", name: "FroggessBackground" },
 ];
 
 LoadAudio = [
@@ -76,7 +99,7 @@ LoadSprites = [
     { srcName: "MaskElements/LowLedge.png", name: "LowLedge" },
     { srcName: "MaskElements/HalfToLedge.png", name: "HalfToLedge" },
     { srcName: "MaskElements/ThirdToLedge.png", name: "ThirdToLedge" },
-    { srcName: "MaskElements/RoughLine.png", name: "RoughLine"},
+    { srcName: "MaskElements/RoughLine.png", name: "RoughLine" },
 
     //UI
     //{ srcName: "UI/FroggessLife.png", name: "Lives" },
