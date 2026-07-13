@@ -55,10 +55,11 @@ const $MAP = {
         }
     },
     mask_moves: [],
+    mask_decal_moves: [],
 };
 
 const PRG = {
-    VERSION: "0.9.2",
+    VERSION: "0.11.0",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -102,6 +103,7 @@ const PRG = {
         $("#buttons").on("click", "#import", GAME.import);
         $("#buttons").on("click", "#copy", GAME.copyToClipboard);
         $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
+        $("#buttons").on("click", "#copy_decal", GAME.copyDecalMaskToClipboard);
         $("#buttons").on("click", "#create_mask", GAME.createMask);
         $("#buttons").on("click", "#download_mask", GAME.downloadMask);
         $("#buttons").on("click", "#textured_mask", GAME.textureToMask);
@@ -139,6 +141,8 @@ const PRG = {
         if (!INI.USE_MASK) {
             $("#show_mask_paint").hide();
             $("#mask_export").hide();
+            $("#show_mask_decals").hide();
+            $("#mask_decal_export").hide();
         }
     },
     start() {
@@ -403,6 +407,7 @@ const GAME = {
             "mask",
             "paintedmask",
             "decals",
+            "final",
             "coord", "grid",
             "click"], null);
 
@@ -419,11 +424,11 @@ const GAME = {
         $("#buttons").append("<input type='button' id='new' value='New'>");
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
-        $("#buttons").append("<input type='button' id='copy' value='Copy to Clipboard' class='green_button'>");
+        $("#buttons").append("<input type='button' id='copy' value='MAP to Clipboard' class='green_button'>");
         $("#buttons").append("<input type='button' id='create_mask' value='Create Mask' class='red_button'>");
-        //$("canvas[title = 'mask']").hide();
-        $("#buttons").append("<input type='button' id='download_mask' value='Download Mask'>");
-        $("#buttons").append("<input type='button' id='copy_mask' value='Copy MASK to Clipboard' class='blue_button'>");
+        $("#buttons").append("<input type='button' id='download_mask' value='DownloadImgs'>");
+        $("#buttons").append("<input type='button' id='copy_mask' value='MASK to Clipboard' class='blue_button'>");
+        $("#buttons").append("<input type='button' id='copy_decal' value='DECAL to Clipboard' class='green_button'>");
         $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
 
         $("#gridsize").on("change", GAME.render);
@@ -494,9 +499,22 @@ const GAME = {
             $("#mask_element, #mask_rotation, #mask_flip").on("change",
                 () => {
                     ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
+                    //ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
                 });
 
             $("#mask_element").trigger("change");
+        }
+
+        if (MASK_DECALS.length > 0) {
+            for (const pic of MASK_DECALS) {
+                $("#mask_decal").append(`<option value="${pic}">${pic}</option>`);
+            }
+            $("#mask_decal").on("change",
+                () => {
+                    //ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
+                    ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
+                });
+            $("#mask_decal").trigger("change");
         }
 
         /** pictures */
@@ -585,6 +603,7 @@ const GAME = {
         $('#searchArchPanorama').on('keyup', () => filterOptions("#archPanorama", "#searchArchPanorama"));
         $('#searchSkyPanorama').on('keyup', () => filterOptions("#skyPanorama", "#searchSkyPanorama"));
         $('#searchMasks').on('keyup', () => filterOptions("#mask_element", "#searchMasks"));
+        $('#searchMasksDecals').on('keyup', () => filterOptions("#mask_decal", "#searchMasksDecals"));
 
         /** shortcuts */
 
@@ -956,6 +975,35 @@ const GAME = {
                 }
                 $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
                 break;
+
+            case "maskdecalpaint":
+                console.warn("HERE");
+                switch (currentValue) {
+                    case MAPDICT.MASK:
+                    case MAPDICT.WALL:
+                        const elIndex = MASK_DECALS.indexOf($("#mask_decal")[0].value);
+                        const rotation = parseInt($("#mask_rotation")[0].value, 10);
+                        const image = $(`#maskdecalcanvas`)[0].getContext("2d").canvas;
+                        const flip = parseInt($("#mask_flip")[0].value, 10);
+                        $MAP.mask_decal_moves.push([gridIndex, rotation, elIndex, flip]);
+                        $("#mask_decal_moves_exp").html(JSON.stringify($MAP.mask_decal_moves));
+                        break;
+                    default:
+                        $("#error_message").html(`Mask not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "deletemaskdecal":
+                for (let [index, mask] of $MAP.mask_decal_moves.entries()) {
+                    if (mask[0] === gridIndex) {
+                        console.warn(`removing ${MASK_DECALS[mask[2]]} at gridIndex ${gridIndex}.`);
+                        $MAP.mask_decal_moves.splice(index, 1);
+                        break;
+                    }
+                }
+                $("#mask_decal_moves_exp").html(JSON.stringify($MAP.mask_decal_moves));
+                break;
         }
 
         GAME.stack.previousRadio = radio;
@@ -965,8 +1013,9 @@ const GAME = {
         const RoomID = $("#roomid")[0].value;
         const gs = parseInt($("#gridsize").val(), 10);
         if (gs !== 64) console.error("Image size usuitable for mask, gs", gs);
+        ENGINE.mergeLayerStack(["paintedmask", "decals"], "final");
         ENGINE.saveCTXAsPNG(LAYER.mask, `mask_level_${RoomID}.png`);
-        ENGINE.saveCTXAsPNG(LAYER.paintedmask, `painted_mask_level_${RoomID}.png`);
+        ENGINE.saveCTXAsPNG(LAYER.final, `final_level_${RoomID}.png`);
     },
     createMask() {
         const OK = confirm("Sure? Current mask will be lost.");
@@ -982,7 +1031,6 @@ const GAME = {
         } else $("canvas[title = 'mask']").hide();
     },
     paintMask() {
-        //console.info("painting mask");
         ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
         const gs = parseInt($("#gridsize").val(), 10);
         const maskCanvasId = $("#ROOM canvas[title='mask']").attr("id");
@@ -995,8 +1043,22 @@ const GAME = {
             const grid = $MAP.map.GA.indexToGrid(gridIndex);
             const p = GRID.gridToCoord(grid, gs);
             const image = SPRITE[element];
-            //console.log(i, maskCanvasId, "p", p, "rotation", rotation, "element", element, "image", image);
             ENGINE.drawRotatedToId(maskCanvasId, p.x, p.y, image, rotation, false, flip, gs);
+        }
+    },
+    paintMaskDecals() {
+        const gs = parseInt($("#gridsize").val(), 10);
+        const maskDecalCanvasId = $("#ROOM canvas[title='decals']").attr("id");
+
+        for (const [i, mask] of $MAP.mask_decal_moves.entries()) {
+            const gridIndex = mask[0];
+            const rotation = mask[1];
+            const element = MASK_DECALS[mask[2]];
+            const flip = mask[3];
+            const grid = $MAP.map.GA.indexToGrid(gridIndex);
+            const p = GRID.gridToCoord(grid, gs);
+            const image = SPRITE[element];
+            ENGINE.drawRotatedToId(maskDecalCanvasId, p.x, p.y, image, rotation, false, flip, gs);
         }
     },
     render(refresh3D = true) {
@@ -1023,7 +1085,11 @@ const GAME = {
 
         GAME.resizeGL_window();
         if (INI.USE_QUAD_MAP) GAME.renderQuadMap(true);
-        if (INI.USE_MASK) GAME.paintMask();
+        if (INI.USE_MASK) {
+            GAME.paintMask();
+            GAME.paintMaskDecals();
+
+        }
 
         // refresh3D !== false is intentional:
         // jQuery event objects passed by click/change handlers should still count as "true".
@@ -1158,7 +1224,7 @@ const GAME = {
         let RoomName = $("#roomname")[0].value;
 
 
-    let roomExport = `${RoomID} : {
+        let roomExport = `${RoomID} : {
 name: "${RoomName}",
 data: '${JSON.stringify(Export)}',
 wall: "${$("#walltexture")[0].value}",
@@ -1255,6 +1321,7 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         //imort masks
         if (INI.USE_MASK) {
             $MAP.mask_moves = JSON.parse($("#mask_moves_exp").val());
+            $MAP.mask_decal_moves = JSON.parse($("#mask_decal_moves_exp").val());
         }
 
         GAME.updateWH();
@@ -1266,22 +1333,14 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
 
         console.info("IMPORT $MAP.map", $MAP.map);
     },
-    async copyToClipboard() {
-        let copyText = $("#exp")[0];
-
-        try {
-            await navigator.clipboard.writeText(copyText.value);
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-        }
+    copyToClipboard() {
+        ENGINE.copyToClipboard("exp");
     },
-    async copyMaskToClipboard() {
-        let copyText = $("#mask_moves_exp")[0];
-        try {
-            await navigator.clipboard.writeText(copyText.value);
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
-        }
+    copyMaskToClipboard() {
+        ENGINE.copyToClipboard("mask_moves_exp");
+    },
+    copyDecalMaskToClipboard() {
+        ENGINE.copyToClipboard("mask_decal_moves_exp");
     },
     resizeGL_window() {
         $("#WEBGL_canvas_0").css("top", `${ENGINE.gameHEIGHT + 4 + 3 * 128 + 2 * 256 + 768 + 320}px`)
@@ -1325,54 +1384,8 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         }
     },
     textureToMask() {
-        console.time("applyTexture");
-        const wallTexture = TEXTURE[$("#walltexture")[0].value];
-        console.warn("wallTexture", wallTexture, typeof (wallTexture), wallTexture.constructor.name, "-", $("#walltexture")[0].value);
-        GAME.applyTextureToMask(wallTexture);
-        console.timeEnd("applyTexture");
+        ENGINE.applyTextureToMask(TEXTURE[$("#walltexture")[0].value], LAYER.mask, LAYER.paintedmask);
     },
-    applyTextureToMask(texture, maskCTX = LAYER.mask, targetCTX = LAYER.paintedmask, threshold = 128) {
-        const W = maskCTX.canvas.width;
-        const H = maskCTX.canvas.height;
-        targetCTX.clearRect(0, 0, W, H);
-        const pattern = targetCTX.createPattern(texture, "repeat");
-
-        targetCTX.save();
-        targetCTX.imageSmoothingEnabled = false;
-        targetCTX.fillStyle = pattern;
-        targetCTX.fillRect(0, 0, W, H);
-        targetCTX.restore();
-
-        //mask brightnes to alpha 
-        const maskData = maskCTX.getImageData(0, 0, W, H);
-        const data = maskData.data;
-
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-
-            const brightness = (r + g + b) / 3;
-            const alpha = brightness >= threshold ? 255 : 0;
-
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = alpha;
-        }
-
-        const alphaCanvas = document.createElement("canvas");
-        alphaCanvas.width = W;
-        alphaCanvas.height = H;
-        const alphaCTX = alphaCanvas.getContext("2d");
-        alphaCTX.putImageData(maskData, 0, 0);
-
-        targetCTX.save();
-        targetCTX.globalCompositeOperation = "destination-in";
-        targetCTX.drawImage(alphaCanvas, 0, 0);
-        targetCTX.globalCompositeOperation = "source-over";
-        targetCTX.restore();
-    }
 };
 
 const NOISE_FUNCTION = {

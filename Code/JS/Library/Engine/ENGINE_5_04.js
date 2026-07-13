@@ -128,6 +128,14 @@ const ENGINE = {
     directions3D_Z: [BELOW3, ABOVE3],
     directions3D: [UP3, RIGHT3, DOWN3, LEFT3, BELOW3, ABOVE3],
     layersToClear: new Set(),
+    async copyToClipboard(id) {
+        let copyText = $(`#${id}`)[0];
+        try {
+            await navigator.clipboard.writeText(copyText.value);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    },
     disableDefaultKeys() {
         /** prevent some default keys and behaviour, including tab close*/
         $(document).keydown(function (event) {
@@ -305,6 +313,67 @@ const ENGINE = {
         let H = LAYER[dest].canvas.height;
         await BITMAP.store(LAYER[src].canvas, src);
         ENGINE.copyLayerFromBitmap(BITMAP[src], dest, 0, 0, W, H);
+    },
+    /** this is the main one now, deprecate the others slowly![] */
+    mergeLayerStack(srcLayers, destLayer) {
+        const destCTX = LAYER[destLayer];
+
+        const W = destCTX.canvas.width;
+        const H = destCTX.canvas.height;
+
+        destCTX.save();
+
+        destCTX.clearRect(0, 0, W, H);
+        destCTX.globalCompositeOperation = "source-over";
+        destCTX.imageSmoothingEnabled = false;
+
+        for (const layerName of srcLayers) {
+            destCTX.drawImage(LAYER[layerName].canvas, 0, 0);
+        }
+
+        destCTX.restore();
+    },
+    applyTextureToMask(texture, maskCTX, targetCTX, threshold = 128) {
+        const W = maskCTX.canvas.width;
+        const H = maskCTX.canvas.height;
+        targetCTX.clearRect(0, 0, W, H);
+        const pattern = targetCTX.createPattern(texture, "repeat");
+
+        targetCTX.save();
+        targetCTX.imageSmoothingEnabled = false;
+        targetCTX.fillStyle = pattern;
+        targetCTX.fillRect(0, 0, W, H);
+        targetCTX.restore();
+
+        //mask brightnes to alpha 
+        const maskData = maskCTX.getImageData(0, 0, W, H);
+        const data = maskData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            const brightness = (r + g + b) / 3;
+            const alpha = brightness >= threshold ? 255 : 0;
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+            data[i + 3] = alpha;
+        }
+
+        const alphaCanvas = document.createElement("canvas");
+        alphaCanvas.width = W;
+        alphaCanvas.height = H;
+        const alphaCTX = alphaCanvas.getContext("2d");
+        alphaCTX.putImageData(maskData, 0, 0);
+
+        targetCTX.save();
+        targetCTX.globalCompositeOperation = "destination-in";
+        targetCTX.drawImage(alphaCanvas, 0, 0);
+        targetCTX.globalCompositeOperation = "source-over";
+        targetCTX.restore();
     },
     spriteDraw(layer, X, Y, image, offset = new Vector(0, 0)) {
         let CX = offset.x + Math.floor(X - Math.floor(image.width / 2));

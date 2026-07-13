@@ -59,6 +59,40 @@ LoadShaders = [
 ];
 
 LoadSprites = [
+    //mask decals
+    { srcName: "MaskDecals/AmanitaClusterFullback1.png", name: "AmanitaClusterFullback1" },
+    { srcName: "MaskDecals/AmanitaFullback1.png", name: "AmanitaFullback1" },
+    { srcName: "MaskDecals/AmanityFull2.png", name: "AmanityFull2" },
+    { srcName: "MaskDecals/Eyes2.png", name: "Eyes2" },
+    { srcName: "MaskDecals/Flower1.png", name: "Flower1" },
+    { srcName: "MaskDecals/Fungi1.png", name: "Fungi1" },
+    { srcName: "MaskDecals/Fungi2.png", name: "Fungi2" },
+    { srcName: "MaskDecals/Fungus1.png", name: "Fungus1" },
+    { srcName: "MaskDecals/Fungus3.png", name: "Fungus3" },
+    { srcName: "MaskDecals/Fungus4.png", name: "Fungus4" },
+    { srcName: "MaskDecals/GreenFungiClusterFullBack1.png", name: "GreenFungiClusterFullBack1" },
+    { srcName: "MaskDecals/GreenWallFungi1.png", name: "GreenWallFungi1" },
+    { srcName: "MaskDecals/Lichen.png", name: "Lichen" },
+    { srcName: "MaskDecals/Moss1.png", name: "Moss1" },
+    { srcName: "MaskDecals/Moss2.png", name: "Moss2" },
+    { srcName: "MaskDecals/Plant1.png", name: "Plant1" },
+    { srcName: "MaskDecals/Plant2.png", name: "Plant2" },
+    { srcName: "MaskDecals/Roots.png", name: "Roots" },
+    { srcName: "MaskDecals/SideFungus.png", name: "SideFungus" },
+    { srcName: "MaskDecals/Spider1.png", name: "Spider1" },
+    { srcName: "MaskDecals/Spider2.png", name: "Spider2" },
+    { srcName: "MaskDecals/Spider3.png", name: "Spider3" },
+    { srcName: "MaskDecals/Spider4.png", name: "Spider4" },
+    { srcName: "MaskDecals/Spider5.png", name: "Spider5" },
+    { srcName: "MaskDecals/WallFungi1.png", name: "WallFungi1" },
+    { srcName: "MaskDecals/WallFungi2.png", name: "WallFungi2" },
+    { srcName: "MaskDecals/WallFungi3.png", name: "WallFungi3" },
+    { srcName: "MaskDecals/WallFungi4.png", name: "WallFungi4" },
+    { srcName: "MaskDecals/WallFungi5.png", name: "WallFungi5" },
+    { srcName: "MaskDecals/YellowEyes1.png", name: "YellowEyes1" },
+    { srcName: "MaskDecals/YellowPlant1.png", name: "YellowPlant1" },
+
+
     //mask elements for map editor
     { srcName: "MaskElements/CurvedTriangle.png", name: "CurvedTriangle" },
     { srcName: "MaskElements/Peak.png", name: "Peak" },
