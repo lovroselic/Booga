@@ -499,7 +499,7 @@ const GAME = {
             $("#mask_element, #mask_rotation, #mask_flip").on("change",
                 () => {
                     ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
-                    //ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
+                    ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
                 });
 
             $("#mask_element").trigger("change");
@@ -511,7 +511,6 @@ const GAME = {
             }
             $("#mask_decal").on("change",
                 () => {
-                    //ENGINE.drawRotatedToId("maskcanvas", 0, 0, SPRITE[$("#mask_element").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
                     ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
                 });
             $("#mask_decal").trigger("change");
@@ -981,6 +980,7 @@ const GAME = {
                 switch (currentValue) {
                     case MAPDICT.MASK:
                     case MAPDICT.WALL:
+                    case MAPDICT.EMPTY:
                         const elIndex = MASK_DECALS.indexOf($("#mask_decal")[0].value);
                         const rotation = parseInt($("#mask_rotation")[0].value, 10);
                         const image = $(`#maskdecalcanvas`)[0].getContext("2d").canvas;
