@@ -2752,11 +2752,17 @@ class $2D_Sprite {
         this.rotationFromDir(dir);
         this.getArea();
     }
-    updateModelMatrix() {
+    updateModelMatrix(useViewport) {
         if (!this.modelMatrix) this.modelMatrix = glMatrix.mat4.create();
 
         glMatrix.mat4.identity(this.modelMatrix);
-        glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.pos.x), Math.round(this.pos.y), 0]);
+        
+        if (useViewport) {
+            glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.vPos.x), Math.round(this.vPos.y), 0]);
+        } else {
+            glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.pos.x), Math.round(this.pos.y), 0]);
+        }
+
         glMatrix.mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.rotation || 0);
         glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [this.w, this.h, 1]);
         return this.modelMatrix;
@@ -2794,15 +2800,16 @@ class $2D_Sprite {
 }
 
 class $2D_Entity {
-    constructor(grid, dir, type, GA) {
+    constructor(grid, dir, type, GA, useViewport = false) {
         this.sprite = new $2D_Sprite(grid, dir, type);
         this.actor = this.sprite;                               // legacy compatibility, redundant already?
         this.moveState = new MoveState(grid, dir, GA);
         this.GA = GA;
+        this.useViewport = useViewport;
         if (this.sprite.speed) this.speed = this.sprite.speed;  // legacy compatibility
     }
     draw(gl, program, spriteQuad, texture = this.sprite.getSpriteTexture()) {
-        const modelMatrix = this.sprite.updateModelMatrix();
+        const modelMatrix = this.sprite.updateModelMatrix(this.useViewport);
         gl.uniformMatrix4fv(program.uniformLocations.modelMatrix, false, modelMatrix);
         gl.uniform4fv(program.uniformLocations.tint, this.sprite.tint);
         gl.uniform4fv(program.uniformLocations.uvRect, [0, 0, 1, 1]);                           // frames are presplit, keep this for future compatibility, like texture atlases
@@ -2826,8 +2833,8 @@ class $2D_Entity {
 }
 
 class $2D_player extends $2D_Entity {
-    constructor(grid, dir, type, GA, map, parent = HERO) {
-        super(grid, dir, type, GA);
+    constructor(grid, dir, type, GA, map, useViewport = false, parent = HERO) {
+        super(grid, dir, type, GA, useViewport);
         this.parent = parent;
         this.map = map;
         this.IA = map.enemyIA;

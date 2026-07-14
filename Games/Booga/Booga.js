@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.1",
+    VERSION: "0.3.2",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -163,10 +163,9 @@ const HERO = {
         const map = MAP[GAME.level].map;
         const start_dir = map.startPosition.vector;
         const start_grid = Grid.toClass(map.startPosition.grid);
-        HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map);
+        HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map, true);
         //HERO.player.addDeathTexture(SPRITE.DeadFrog);
         if (GAME.time) GAME.time.unregister();
-        //GAME.time = new CountDown("LevelTime", INI.TIMEOUT, HERO.die);
         if (DEBUG.VERBOSE) console.note("playerSetUp, HERO set to start grid");
     },
     handleHoleMove(grid) {
@@ -286,6 +285,7 @@ const GAME = {
         ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos);
         ENGINE.VIEWPORT.report();
 
+        GAME.time = new Timer("main");
         GAME.drawFirstFrame(GAME.level);
         ENGINE.GAME.resume();
     },
@@ -372,18 +372,15 @@ const GAME = {
         if (GAME.completed) GAME.won();
     },
     frameDraw(lapsedTime) {
-        //ENGINE.clearLayerStack(); //nothing yet on stack
         GAME.updateVieport();
         WebGL.render2DScene(MAP[GAME.level].map);
-        //TITLE.time();
+        TITLE.time();
         if (DEBUG.FPS) {
             GAME.FPS(lapsedTime);
         }
     },
     updateVieport() {
         if (!ENGINE.VIEWPORT.changed) return;
-        //ENGINE.VIEWPORT.change("floor", "background");
-        //ENGINE.VIEWPORT.change("gold", "background");
         ENGINE.VIEWPORT.change(BITMAP.screen, "background");
         ENGINE.VIEWPORT.changed = false;
     },
@@ -447,7 +444,7 @@ const GAME = {
         SCORE.checkScore(GAME.score);
         SCORE.hiScore();
     },
-    goalReachedRun() {
+    /*goalReachedRun() {
         if (ENGINE.GAME.stopAnimation) return;
         GAME.time.decrease(1);
         GAME.score += INI.SCORE_PER_SECOND;
@@ -460,11 +457,11 @@ const GAME = {
         }
 
         GAME.goalReachedFrameDraw();
-    },
-    goalReachedFrameDraw() {
+    },*/
+    /*goalReachedFrameDraw() {
         TITLE.time();
         TITLE.score();
-    }
+    }*/
 };
 
 const TITLE = {
@@ -635,13 +632,13 @@ const TITLE = {
         TITLE.stage();
         TITLE.hiscore();
         TITLE.lives();
-        //TITLE.time();
+        TITLE.time();
         TITLE.smalTitle();
     },
     music() {
         AUDIO.Title.play();
     },
-    time() {
+    /*time() {
         const CTX = LAYER.time;
         ENGINE.clearLayer("time");
         const x = 64;
@@ -651,6 +648,23 @@ const TITLE = {
         const remaining = GAME.time.remains();
         const fraction = remaining / INI.TIMEOUT;
         ENGINE.percentBar(fraction, y, CTX, w, ["green", "yellow", "red"], h, x, 0);
+    },*/
+    time() {
+        const CTX = LAYER.time;
+        ENGINE.clearLayer("time");
+        const x = 400 + 32;
+        const fs = 18;
+        const y = ENGINE.titleHEIGHT / 2 + fs / 4;
+        CTX.font = fs + "px Booga";
+        CTX.textAlign = "left";
+        CTX.fillStyle = "rgb(11, 239, 11)";
+        CTX.shadowColor = "#24843a";
+        CTX.shadowOffsetX = 1;
+        CTX.shadowOffsetY = 1;
+        CTX.shadowBlur = 1;
+        const time = GAME.time.time();
+        CTX.fillText(`Time: ${time.m.toString().padStart(2, "0")}:${time.s.toString().padStart(2, "0")}`, x, y);
+
     },
     score() {
         ENGINE.clearLayer("score");
@@ -665,7 +679,7 @@ const TITLE = {
         CTX.shadowOffsetX = 1;
         CTX.shadowOffsetY = 1;
         CTX.shadowBlur = 1;
-        CTX.fillText(`Score: ${GAME.score.toString().padStart(6, "0")}`, x, y);
+        CTX.fillText(`Score: ${GAME.score.toString().padStart(5, "0")}`, x, y);
         if (GAME.score >= GAME.extraLife[0]) {
             GAME.lives++;
             GAME.extraLife.shift();
@@ -677,16 +691,16 @@ const TITLE = {
         ENGINE.clearLayer("level");
         const CTX = LAYER.level;
         const fs = 18;
-        const x = 300 + 32;
+        const x = 240 + 32;
         const y = ENGINE.titleHEIGHT / 2 + fs / 4;
         CTX.font = fs + "px Booga";
         CTX.textAlign = "left";
-        CTX.fillStyle = "#2911c2";
+        CTX.fillStyle = "#146dfb";
         CTX.shadowColor = "#666";
         CTX.shadowOffsetX = 1;
         CTX.shadowOffsetY = 1;
         CTX.shadowBlur = 1;
-        CTX.fillText(`Stage: ${GAME.level.toString().padStart(2, "0")}`, x, y);
+        CTX.fillText(`Stage: ${GAME.level.toString().padStart(1, "0")}`, x, y);
     },
     hiscore() {
         ENGINE.clearLayer("hiscore");
@@ -696,7 +710,7 @@ const TITLE = {
         const y = ENGINE.titleHEIGHT / 2 + fs / 4;
         CTX.font = fs + "px Booga";
         CTX.textAlign = "right";
-        CTX.fillStyle = "#c211a5";
+        CTX.fillStyle = "#dc0d0d";
         CTX.shadowColor = "#666";
         CTX.shadowOffsetX = 1;
         CTX.shadowOffsetY = 1;
@@ -708,7 +722,7 @@ const TITLE = {
         } else {
             HS = SCORE.SCORE.name[0];
         }
-        const text = "HISCORE: " + SCORE.SCORE.value[0].toString().padStart(6, "0") + " by " + HS;
+        const text = "HISCORE: " + SCORE.SCORE.value[0].toString().padStart(5, "0") + " by " + HS;
         CTX.fillText(text, x, y);
     },
     lives() {
@@ -733,5 +747,5 @@ $(() => {
     SCORE.init("SC", "BOOGA", 10, 1000);
     SCORE.loadHS();
     SCORE.hiScore();
-    SCORE.extraLife = [5000, 10000, 15000, 20000, 25000, 50000, 100000, 200000, 500000, 1000000, Infinity];
+    SCORE.extraLife = [Infinity];
 });
