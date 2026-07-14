@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.2.2",
+    VERSION: "0.3.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -120,7 +120,6 @@ const HERO = {
     construct() {
         this.player = null;
         this.dead = false;
-
     },
     concludeAction() {
         if (!HERO.player.moveState.moving) HERO.player.sprite.reset();
@@ -161,10 +160,10 @@ const HERO = {
         GAME.levelStart();
     },
     playerSetUp() {
-        const map = MAP.main.map;
+        const map = MAP[GAME.level].map;
         const start_dir = map.startPosition.vector;
         const start_grid = Grid.toClass(map.startPosition.grid);
-        HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Froggess, map.GA, map);
+        HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map);
         //HERO.player.addDeathTexture(SPRITE.DeadFrog);
         if (GAME.time) GAME.time.unregister();
         //GAME.time = new CountDown("LevelTime", INI.TIMEOUT, HERO.die);
@@ -262,7 +261,6 @@ const GAME = {
     levelStart() {
         if (DEBUG.VERBOSE) console.log("Starting level", GAME.level);
         GAME.prepareForRestart();
-        ENGINE.draw("background", 0, 0, TEXTURE.FroggessBackground);
         HERO.construct();
         this.levelComplete = false;
         GAME.initLevel(GAME.level);
@@ -271,7 +269,6 @@ const GAME = {
     continueLevel() {
         if (DEBUG.VERBOSE) console.log("Continue level", GAME.level);
         HERO.dead = false;
-        HERO.carried = 0;
         HERO.playerSetUp();
         GAME.setCameraView();
         GAME.setWorld();
@@ -283,6 +280,7 @@ const GAME = {
             console.log("\nExecute level", GAME.level, "\n\n");
             console.line();
         }
+        
         GAME.drawFirstFrame(GAME.level);
         ENGINE.GAME.resume();
     },
@@ -292,7 +290,7 @@ const GAME = {
     },
     initLevel(level) {
         if (DEBUG.VERBOSE) console.info("init level", level);
-        this.newDungeon();
+        this.newDungeon(level);
         this.buildWorld(level);
     },
     setWorld() {
@@ -300,12 +298,12 @@ const GAME = {
     },
     buildWorld(level) {
         if (DEBUG.VERBOSE) console.info(" ******** building world, room/dungeon/level:", level);
-        WebGL.init_required_IAM(MAP.main.map, HERO);
-        SPAWN_TOOLS.spawnLanes(level, MAP.main.map.GA);
+        WebGL.init_required_IAM(MAP[level].map, HERO);
+        //spawn from here - not yet implemented
     },
-    newDungeon() {
-        MAP_TOOLS.unpack("main");
-        MAP.main.unpacked = false;
+    newDungeon(level) {
+        MAP_TOOLS.unpack(level);
+        MAP[level].unpacked = false;
     },
     prepareForRestart() {
         let clear = ["background", "text", "FPS", "button", "bottomText", "fill"];
@@ -356,8 +354,8 @@ const GAME = {
         const date = Date.now();
         GAME.respond(lapsedTime);
         ENGINE.TIMERS.update();
-        HERO.manage(lapsedTime);
-        PLANE_GRID1D.manage(lapsedTime);
+        //HERO.manage(lapsedTime);
+        //PLANE_GRID1D.manage(lapsedTime);
         GAME.frameDraw(lapsedTime);
         HERO.concludeAction(lapsedTime);
         if (HERO.dead) IAM.checkIfProcessesComplete([EXPLOSION3D], HERO.death);
@@ -365,7 +363,7 @@ const GAME = {
     },
     frameDraw(lapsedTime) {
         WebGL.render2DScene(MAP[GAME.level].map);
-        TITLE.time();
+        //TITLE.time();
         if (DEBUG.FPS) {
             GAME.FPS(lapsedTime);
         }
@@ -618,7 +616,7 @@ const TITLE = {
         TITLE.stage();
         TITLE.hiscore();
         TITLE.lives();
-        TITLE.time();
+        //TITLE.time();
         TITLE.smalTitle();
     },
     music() {

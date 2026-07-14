@@ -46,6 +46,12 @@ LoadTextures = [
     { srcName: "Wall/CaveWallBooga_232.webp", name: "CaveWallBooga_232" },
 
     { srcName: "Title/Booga_title_768.webp", name: "Title" },
+
+    //masks
+    { srcName: "Mask/mask_level_1.webp", name: "mask_level_1" },
+
+    //screens
+    { srcName: "Screen/final_level_1.webp", name: "final_level_1[" },
 ];
 
 LoadAudio = [
@@ -59,6 +65,8 @@ LoadShaders = [
 ];
 
 LoadSprites = [
+    //UI
+    { srcName: "UI/Booga.png", name: "Lives" },
     //mask decals
     { srcName: "MaskDecals/AmanitaClusterFullback1.png", name: "AmanitaClusterFullback1" },
     { srcName: "MaskDecals/AmanitaFullback1.png", name: "AmanitaFullback1" },
