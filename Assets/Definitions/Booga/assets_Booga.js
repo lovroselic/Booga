@@ -91,6 +91,16 @@ LoadSprites = [
     { srcName: "MaskDecals/WallFungi5.png", name: "WallFungi5" },
     { srcName: "MaskDecals/YellowEyes1.png", name: "YellowEyes1" },
     { srcName: "MaskDecals/YellowPlant1.png", name: "YellowPlant1" },
+    { srcName: "MaskDecals/Mushroom_233.png", name: "Mushroom_233" },
+    { srcName: "MaskDecals/Mushroom_234.png", name: "Mushroom_234" },
+    { srcName: "MaskDecals/Mushroom_235.png", name: "Mushroom_235" },
+    { srcName: "MaskDecals/Mushroom_236.png", name: "Mushroom_236" },
+    { srcName: "MaskDecals/Mushroom_237.png", name: "Mushroom_237" },
+    { srcName: "MaskDecals/Mushroom_238.png", name: "Mushroom_238" },
+    { srcName: "MaskDecals/Mushroom_239.png", name: "Mushroom_239" },
+    { srcName: "MaskDecals/Mushroom_240.png", name: "Mushroom_240" },
+    { srcName: "MaskDecals/Mushroom_241.png", name: "Mushroom_241" },
+    { srcName: "MaskDecals/Mushroom_242.png", name: "Mushroom_242" },
 
 
     //mask elements for map editor

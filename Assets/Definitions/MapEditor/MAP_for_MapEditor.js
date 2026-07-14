@@ -51,7 +51,8 @@ const MASK_ELEMENTS = [
 const MASK_DECALS = [
     "AmanitaClusterFullback1", "AmanitaFullback1", "AmanityFull2", "Eyes2", "Flower1", "Fungi1", "Fungi2", "Fungus1", "Fungus3", "Fungus4", "GreenFungiClusterFullBack1", "GreenWallFungi1",
     "Lichen", "Moss1", "Moss2", "Plant1", "Plant2", "Roots", "SideFungus", "Spider1", "Spider2", "Spider3", "Spider4", "Spider5",
-    "WallFungi1", "WallFungi2", "WallFungi3", "WallFungi4", "WallFungi5", "YellowEyes1", "YellowPlant1"
+    "WallFungi1", "WallFungi2", "WallFungi3", "WallFungi4", "WallFungi5", "YellowEyes1", "YellowPlant1",
+    "Mushroom_233", "Mushroom_234", "Mushroom_235", "Mushroom_236", "Mushroom_237", "Mushroom_238", "Mushroom_239", "Mushroom_240", "Mushroom_241", "Mushroom_242"
 ];
 
 const TRIGGER_DECALS = [];
