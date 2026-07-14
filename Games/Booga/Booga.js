@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.0",
+    VERSION: "0.3.1",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -280,7 +280,12 @@ const GAME = {
             console.log("\nExecute level", GAME.level, "\n\n");
             console.line();
         }
-        
+
+        ENGINE.VIEWPORT.reset();
+        ENGINE.VIEWPORT.check(HERO.player.actor.pos);
+        ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos);
+        ENGINE.VIEWPORT.report();
+
         GAME.drawFirstFrame(GAME.level);
         ENGINE.GAME.resume();
     },
@@ -292,6 +297,11 @@ const GAME = {
         if (DEBUG.VERBOSE) console.info("init level", level);
         this.newDungeon(level);
         this.buildWorld(level);
+        ENGINE.VIEWPORT.setMax({ x: MAP[level].pw, y: MAP[level].ph });
+        this.createBitmaps(level);
+    },
+    async createBitmaps(level) {
+        await BITMAP.store(TEXTURE[`final_level_${level}`], "screen");
     },
     setWorld() {
         WebGL.init2D('webgl');
@@ -362,11 +372,20 @@ const GAME = {
         if (GAME.completed) GAME.won();
     },
     frameDraw(lapsedTime) {
+        //ENGINE.clearLayerStack(); //nothing yet on stack
+        GAME.updateVieport();
         WebGL.render2DScene(MAP[GAME.level].map);
         //TITLE.time();
         if (DEBUG.FPS) {
             GAME.FPS(lapsedTime);
         }
+    },
+    updateVieport() {
+        if (!ENGINE.VIEWPORT.changed) return;
+        //ENGINE.VIEWPORT.change("floor", "background");
+        //ENGINE.VIEWPORT.change("gold", "background");
+        ENGINE.VIEWPORT.change(BITMAP.screen, "background");
+        ENGINE.VIEWPORT.changed = false;
     },
     respond(lapsedTime) {
         if (HERO.dead) return;

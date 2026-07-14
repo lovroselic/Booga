@@ -12,6 +12,8 @@ const HERO_TYPE = {
         asset: "FleaIdle",
         animate: true,
         dirRef: UP,
+        w: 64,
+        h: 64,
     }
 };
 

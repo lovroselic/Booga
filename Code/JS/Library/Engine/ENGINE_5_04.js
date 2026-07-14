@@ -297,6 +297,20 @@ const ENGINE = {
         $(`#${id}`).append(canvas);
         LAYER[id] = $(`#c_${id}`)[0].getContext("2d");
     },
+    copySourceRectToLayer(source, copyTo, sx, sy, sw, sh, dx = 0, dy = 0, dw = sw, dh = sh, clear = true) {
+        /** glorified version of  copyLayer*/
+        const CTX = LAYER[copyTo];
+        if (clear) CTX.clearRect(dx, dy, dw, dh);
+
+        CTX.save();
+        CTX.globalCompositeOperation = "source-over";
+        CTX.imageSmoothingEnabled = false;
+        CTX.drawImage(source, sx, sy, sw, sh, dx, dy, dw, dh);
+        CTX.restore();
+    },
+    copyViewportToLayer(source, copyTo) {
+        ENGINE.copySourceRectToLayer(source, copyTo, ENGINE.VIEWPORT.vx, ENGINE.VIEWPORT.vy, ENGINE.gameWIDTH, ENGINE.gameHEIGHT, 0, 0, ENGINE.gameWIDTH, ENGINE.gameHEIGHT, true);
+    },
     copyLayer(copyFrom, copyTo, orX, orY, orW, orH) {
         /** use copyLayerFromBitmap  */
         let CTX = LAYER[copyTo];
@@ -314,15 +328,13 @@ const ENGINE = {
         await BITMAP.store(LAYER[src].canvas, src);
         ENGINE.copyLayerFromBitmap(BITMAP[src], dest, 0, 0, W, H);
     },
-    /** this is the main one now, deprecate the others slowly![] */
+    /** this is the main one now, deprecate the others slowly! */
     mergeLayerStack(srcLayers, destLayer) {
         const destCTX = LAYER[destLayer];
-
         const W = destCTX.canvas.width;
         const H = destCTX.canvas.height;
 
         destCTX.save();
-
         destCTX.clearRect(0, 0, W, H);
         destCTX.globalCompositeOperation = "source-over";
         destCTX.imageSmoothingEnabled = false;
@@ -1515,14 +1527,14 @@ const ENGINE = {
             console.log("VIEWPORT:", ENGINE.VIEWPORT.vx, ENGINE.VIEWPORT.vy);
         },
         change(from, to) {
-            ENGINE.copyLayer(from, to, ENGINE.VIEWPORT.vx, ENGINE.VIEWPORT.vy, ENGINE.gameWIDTH, ENGINE.gameHEIGHT);
+            ENGINE.copyViewportToLayer(from, to);
         },
         changeFromBitmap(from, to) {
-            ENGINE.copyLayerFromBitmap(BITMAP[from], to, ENGINE.VIEWPORT.vx, ENGINE.VIEWPORT.vy, ENGINE.gameWIDTH, ENGINE.gameHEIGHT);
+            ENGINE.VIEWPORT.change(from, to);                       //alias for compatibility
         },
         check(actor, max = ENGINE.VIEWPORT.max) {
-            var vx = actor.x - ENGINE.gameWIDTH / 2;
-            var vy = actor.y - ENGINE.gameHEIGHT / 2;
+            let vx = actor.x - ENGINE.gameWIDTH / 2;
+            let vy = actor.y - ENGINE.gameHEIGHT / 2;
             if (vx < 0) vx = 0;
             if (vy < 0) vy = 0;
             if (vx > max.x - ENGINE.gameWIDTH) vx = max.x - ENGINE.gameWIDTH;
@@ -1536,6 +1548,10 @@ const ENGINE = {
         alignTo(actor) {
             actor.vx = actor.x - ENGINE.VIEWPORT.vx;
             actor.vy = actor.y - ENGINE.VIEWPORT.vy;
+        },
+        alignToPosition(pos, vPos) {
+            vPos.x = pos.x - ENGINE.VIEWPORT.vx;
+            vPos.y = pos.y - ENGINE.VIEWPORT.vy;
         }
     },
     TEXT: {

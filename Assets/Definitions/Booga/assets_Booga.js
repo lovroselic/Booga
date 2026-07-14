@@ -51,7 +51,7 @@ LoadTextures = [
     { srcName: "Mask/mask_level_1.webp", name: "mask_level_1" },
 
     //screens
-    { srcName: "Screen/final_level_1.webp", name: "final_level_1[" },
+    { srcName: "Screen/final_level_1.webp", name: "final_level_1" },
 ];
 
 LoadAudio = [
