@@ -2756,7 +2756,7 @@ class $2D_Sprite {
         if (!this.modelMatrix) this.modelMatrix = glMatrix.mat4.create();
 
         glMatrix.mat4.identity(this.modelMatrix);
-        
+
         if (useViewport) {
             glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.vPos.x), Math.round(this.vPos.y), 0]);
         } else {
@@ -2824,7 +2824,7 @@ class $2D_Entity {
     }
     continueMove(lapsedTime) {
         if (!this.moveState.moving) return;
-        GRID.translateMove2D(this, lapsedTime);
+        GRID.translateMove2D(this, lapsedTime, null, true, this.useViewport);
     }
     setSpeed(speed) {
         this.speed = speed;
@@ -2841,7 +2841,7 @@ class $2D_player extends $2D_Entity {
     }
     move(dir) {
         let nextGrid = this.sprite.pos.to_FP_Grid();                    //FP grid based on sprite center position
-
+        
         if (this.parent.carried) {
             const which = PLANE_GRID1D.show(this.parent.carried);
             const carrierDistance = which.speed / this.speed;
@@ -2897,7 +2897,7 @@ class $2D_player extends $2D_Entity {
     continueMove(lapsedTime) {
         if (this.parent.carried) this.carry(this.parent.carried);
         if (!this.moveState.moving) return;
-        GRID.translateMove2D(this, lapsedTime, this.checkEndMove.bind(this), true);
+        GRID.translateMove2D(this, lapsedTime, this.checkEndMove.bind(this), true, this.useViewport);
     }
     checkEndMove() {
         const endValue = this.GA.getValue(this.moveState.startGrid);

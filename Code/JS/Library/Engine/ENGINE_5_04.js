@@ -1549,6 +1549,7 @@ const ENGINE = {
             actor.vx = actor.x - ENGINE.VIEWPORT.vx;
             actor.vy = actor.y - ENGINE.VIEWPORT.vy;
         },
+        /** for more modern webgl sprite approach */
         alignToPosition(pos, vPos) {
             vPos.x = pos.x - ENGINE.VIEWPORT.vx;
             vPos.y = pos.y - ENGINE.VIEWPORT.vy;

@@ -286,13 +286,16 @@ const GRID = {
      * VIEWPORT is handled elsewhere
      * gridArray not used, assuming i will never again do a pacman clone
      */
-    translateMove2D(entity, lapsedTime, onFinish = null, animate = true) {
+    translateMove2D(entity, lapsedTime, onFinish = null, animate = true, changeView = false) {
         let length = (lapsedTime / 1000) * entity.speed;
         entity.actor.pos = entity.actor.pos.translate(entity.actor.dir, length);
         if (animate) entity.actor.updateAnimation(lapsedTime);
         entity.moveState.homeGrid = GRID.pointToGrid(entity.actor.pos);
         entity.moveState.pos = entity.actor.pos.toTopLeft().to_FP_Grid();
         const overallDistance = entity.moveState.pos.distance(entity.moveState.startGrid);
+
+        if (changeView) ENGINE.VIEWPORT.check(entity.actor.pos);
+        ENGINE.VIEWPORT.alignToPosition(entity.actor.pos, entity.actor.vPos);
 
         if (overallDistance >= 1.0) {
             entity.moveState.moving = false;

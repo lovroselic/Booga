@@ -14,6 +14,7 @@ const HERO_TYPE = {
         dirRef: UP,
         w: 64,
         h: 64,
+        speed: 3.0 * 64,
     }
 };
 

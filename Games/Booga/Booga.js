@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.2",
+    VERSION: "0.3.3",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -283,7 +283,7 @@ const GAME = {
         ENGINE.VIEWPORT.reset();
         ENGINE.VIEWPORT.check(HERO.player.actor.pos);
         ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos);
-        ENGINE.VIEWPORT.report();
+        //ENGINE.VIEWPORT.report();
 
         GAME.time = new Timer("main");
         GAME.drawFirstFrame(GAME.level);
@@ -364,7 +364,7 @@ const GAME = {
         const date = Date.now();
         GAME.respond(lapsedTime);
         ENGINE.TIMERS.update();
-        //HERO.manage(lapsedTime);
+        HERO.manage(lapsedTime);
         //PLANE_GRID1D.manage(lapsedTime);
         GAME.frameDraw(lapsedTime);
         HERO.concludeAction(lapsedTime);
