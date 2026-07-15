@@ -328,6 +328,73 @@ const GRID = {
         }
         return;
     },
+
+
+    translateSpritePosition(entity, lapsedTime, onFinish = null, animate = true, changeView = false) {
+        const motion = entity.motion;
+        if (!motion?.active) return;
+        const sprite = entity.sprite;   //no need to check whether it exist - it has to!
+        const dt = (lapsedTime / 1000);
+
+        motion.velocity.x += motion.acceleration.x * dt;
+        motion.velocity.y += motion.acceleration.y * dt;
+
+        const currentPos = sprite.pos;                                      //this is class Point
+        let candidatePos = currentPos.translate(motion.velocity, dt);       // and returns Point
+        const collision = GRID.checkWallCollision(entity, candidatePos);
+
+        let result = { finished: false};
+        if (collision.hit) {
+            result = GRID.resolveWallCollision(entity, collision, currentPos, candidatePos);
+            candidatePos = result.pos ?? candidatePos;                      //whatevers comes out of evaluation, this is new position to be used
+        }
+
+        sprite.setPosition(candidatePos);
+        console.log("candidatePos", candidatePos);
+        if (animate) sprite.updateAnimation(lapsedTime);
+        if (changeView) ENGINE.VIEWPORT.check(sprite.pos);
+        ENGINE.VIEWPORT.alignToPosition(sprite.pos, sprite.vPos);
+        if (result.finished) {
+            motion.deactivate();
+            onFinish?.(result);
+        }
+    },
+    checkWallCollision(entity, candidatePos) {
+
+        /**
+        * TODO:
+        * collision top, botom, side -> horizontal in move direction
+        * top and side indicates -> no landing -> blocked
+        * bottom indicates landing or sliding -> surface
+        * so we can have 2 types: blocked, surface
+        * this still splits the responsibility between game and engine
+        * assuming this will always be used as side perspective - it probably will
+        * normal used for ?? booga will not bounce but fall straight down!
+        * then I also don't need currentPos
+        */
+
+        return {
+            hit: false,
+            type: null,
+            contacts: [],
+            //normal: null 
+        };
+    },
+    resolveWallCollision(entity, collision, currentPos, candidatePos) {
+        /**
+         * expected type: blocked, surface
+         */
+        return entity.parent?.handlePositionCollision?.({
+            entity,
+            collision,
+            currentPos,
+            candidatePos
+        }) ?? {
+            finished: false,
+            pos: candidatePos,
+        };
+    },
+
     blockMove(entity, changeView = false) {
         let newGrid = entity.moveState.startGrid.add(entity.moveState.dir);
         entity.moveState.reset(newGrid);

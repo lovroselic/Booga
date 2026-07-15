@@ -2812,6 +2812,7 @@ class $2D_Entity {
         this.GA = GA;
         this.useViewport = useViewport;
         if (this.sprite.speed) this.speed = this.sprite.speed;  // legacy compatibility
+        this.motion = new Motion2D();
     }
     draw(gl, program, spriteQuad, texture = this.sprite.getSpriteTexture()) {
         const modelMatrix = this.sprite.updateModelMatrix(this.useViewport);

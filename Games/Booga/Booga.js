@@ -33,10 +33,12 @@ const INI = {
     MAX_LEVEL: 1,
     JUMP_POWER_INC: 1,      // not tuned
     MAX_JUMP_POWER: 100,    // not tuned
+    JUMP_SPEED_FACTOR: 20,  // converts charged power into pixels/second
+    GRAVITY: 500,           // pixels/second² 500
 };
 
 const PRG = {
-    VERSION: "0.3.6",
+    VERSION: "0.3.7",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -124,13 +126,17 @@ const HERO = {
         this.dead = false;
         this.jumpPower = 0;
         this.setMode();
+
+        //binds
+        this.handleFinishedJump = this.handleFinishedJump.bind(this);
     },
     setMode(mode = "idle", dir = UP) {
         /**
          * idle
          * side, idle but with attitude
          * jumping
-         * falling, idle but with rotation, maybe
+         * sliding, idle but rotation
+         * falling, idle but straight
          */
         if (mode === this.mode) return;
         this.mode = mode;
@@ -141,6 +147,7 @@ const HERO = {
                 this.player?.sprite.setDirRef(UP);
                 break;
             case "falling":
+            case "sliding":
                 this.player?.sprite.setAsset("FleaIdle");
                 break;
             case "jumping":
@@ -185,7 +192,7 @@ const HERO = {
         TITLE.startTitle();
     },
     manage(lapsedTime) {
-        this.player.continueMove(lapsedTime);
+        GRID.translateSpritePosition(HERO.player, lapsedTime, HERO.handleFinishedJump, true, true);
     },
     completeLevel() {
         if (DEBUG.VERBOSE) console.ok("level completed");
@@ -253,7 +260,7 @@ const HERO = {
         this.setMode("side", this.jumpDir);
     },
     handleNothingWasPressed() {
-        console.warn("handleNothingWasPressed");
+        //console.warn("handleNothingWasPressed");
         if (this.mode !== "side") return;
         if (this.jumpPower <= 0) return;
 
@@ -264,7 +271,47 @@ const HERO = {
         this.jumpDir = null;
     },
     performJump() {
+        if (this.player.motion.active) return;
         console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);
+        const speed = this.jumpPower * INI.JUMP_SPEED_FACTOR;
+        const component = speed * Math.SQRT1_2;                     // cos(45°) and sin(45°)
+        const mode = "jumping";
+        this.setMode(mode, this.jumpDir);
+        this.player.motion.setType(mode);                      // no importance, but aligned with mode, just in case
+        this.player.motion.setVelocity({ x: this.jumpDir.x * component, y: -component });
+        this.player.motion.setAcceleration({ x: 0, y: INI.GRAVITY });
+        this.player.motion.activate();
+
+        console.info(
+            "Jump started:",
+            "power", this.jumpPower,
+            "velocity", this.player.motion.velocity
+        );
+    },
+    handlePositionCollision(context) {
+        console.warn("Position collision", context);
+
+        /**
+         * TODO: from contacts, resolved sliding or landing
+         * type: blocked -> use currentPos, next direction DOWN, update mode (falling)
+         * type: surface -> use candidatePos, calc direction, update mode (sliding)
+         * 
+         * returns new position, which might be candidatePos or currentPos
+         */
+
+        return {
+            finished: false,
+            pos: context.candidatePos,
+        };
+    },
+    handleFinishedJump(result) {
+        console.warn("handleFinishedJump", result);
+        /**
+         * TODO
+         * set mode idel
+         * clean movestate, pretty reduindant but nice form
+         * and whatever I forgot
+         */
     }
 };
 

@@ -4133,6 +4133,30 @@ class PX_MoveState {
         ];
     }
 }
+
+class Motion2D {
+    constructor() {
+        this.active = false;
+        this.type = null;
+        this.velocity = new FP_Vector();
+        this.acceleration = new FP_Vector();
+    }
+    activate() {
+        this.active = true;
+    }
+    deactivate() {
+        this.active = false;
+    }
+    setVelocity(velocity) {
+        this.velocity = FP_Vector.toClass(velocity);
+    }
+    setAcceleration(acceleration) {
+        this.acceleration = FP_Vector.toClass(acceleration);
+    }
+    setType(type) {
+        this.type = type;
+    }
+}
 const VIEW = {
     init() {
         VIEW.x = 0;
