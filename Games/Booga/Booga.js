@@ -31,10 +31,12 @@ const DEBUG = {
 const INI = {
     SCREEN_BORDER: 64,
     MAX_LEVEL: 1,
+    JUMP_POWER_INC: 1,      // not tuned
+    MAX_JUMP_POWER: 100,    // not tuned
 };
 
 const PRG = {
-    VERSION: "0.3.4",
+    VERSION: "0.3.5",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -88,7 +90,7 @@ const PRG = {
 
         $("#bottom").css("margin-top", ENGINE.gameHEIGHT + ENGINE.titleHEIGHT + ENGINE.bottomHEIGHT);
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 2 * ENGINE.sideWIDTH + 4);
-        ENGINE.addBOX("TITLE", ENGINE.titleWIDTH, ENGINE.titleHEIGHT, ["title", "score", "level", "hiscore", "time"], null);
+        ENGINE.addBOX("TITLE", ENGINE.titleWIDTH, ENGINE.titleHEIGHT, ["title", "score", "level", "hiscore", "time", "jump"], null);
         ENGINE.addBOX("LSIDE", INI.SCREEN_BORDER, ENGINE.gameHEIGHT, ["Lsideback",], "side");
         ENGINE.addBOX("ROOM", ENGINE.gameWIDTH, ENGINE.gameHEIGHT, ["background", "grid", "coord", "3d_webgl", "fill", "info", "text", "FPS", "button", "click"], "side");
         ENGINE.addBOX("SIDE", ENGINE.sideWIDTH, ENGINE.gameHEIGHT, ["sideback"], "fside");
@@ -120,6 +122,28 @@ const HERO = {
     construct() {
         this.player = null;
         this.dead = false;
+        this.jumpPower = 0;
+        this.setMode();
+    },
+    setMode(mode = "idle") {
+        /**
+         * idle
+         * jumping
+         * falling
+         */
+        if (mode === this.mode) return;
+        this.mode = mode;
+
+        switch (this.mode) {
+            case "idle":
+            case "falling":
+                this.player?.sprite.setAsset("FleaIdle");
+                break;
+            case "jumping":
+                this.player?.sprite.setAsset("FleaJump");
+                break;
+            default: throw new Error(`Hero mode not suported: ${this.mode}`)
+        }
     },
     concludeAction() {
         if (!HERO.player.moveState.moving) HERO.player.sprite.reset();
@@ -210,7 +234,22 @@ const HERO = {
         //not applicable
     },
     handleMove(dir) {
+        if (dir.y !== 0) return;                    // x-only
         console.info("handleMove", dir);
+        this.jumpPower += INI.JUMP_POWER_INC;
+        this.jumpPower = Math.min(this.jumpPower, INI.MAX_JUMP_POWER);
+        if (!this.jumpDir) this.jumpDir = dir;
+    },
+    handleNothingWasPressed() {
+        console.warn("handleNothingWasPressed");
+        if (this.jumpPower > 0) {
+            this.performJump();
+            this.jumpPower = 0;
+            this.jumpDir = null;
+        }
+    },
+    performJump() {
+        console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);
     }
 };
 
@@ -370,6 +409,7 @@ const GAME = {
         GAME.updateVieport();
         WebGL.render2DScene(MAP[GAME.level].map);
         TITLE.time();
+        TITLE.jumpPower();
         if (DEBUG.FPS) {
             GAME.FPS(lapsedTime);
         }
@@ -480,7 +520,7 @@ const TITLE = {
         ENGINE.layersToClear = new Set(["text",
             "sideback", "button", "title", "FPS", "info", "subtitle",
             "score", "level", "hiscore",
-            "lives", "time",
+            "lives", "time", "jump",
             "fill",
             "grid", "coord",
             "bottomText"]);
@@ -628,22 +668,22 @@ const TITLE = {
         TITLE.hiscore();
         TITLE.lives();
         TITLE.time();
+        TITLE.jumpPower();
         TITLE.smalTitle();
     },
     music() {
         AUDIO.Title.play();
     },
-    /*time() {
+    jumpPower() {
         const CTX = LAYER.time;
-        ENGINE.clearLayer("time");
+        ENGINE.clearLayer("jump");
         const x = 64;
         const h = 12;
         const y = ENGINE.titleHEIGHT - h - 1 - 16;
         const w = ENGINE.gameWIDTH;
-        const remaining = GAME.time.remains();
-        const fraction = remaining / INI.TIMEOUT;
+        const fraction = HERO.jumpPower / INI.MAX_JUMP_POWER;
         ENGINE.percentBar(fraction, y, CTX, w, ["green", "yellow", "red"], h, x, 0);
-    },*/
+    },
     time() {
         const CTX = LAYER.time;
         ENGINE.clearLayer("time");

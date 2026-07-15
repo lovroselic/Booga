@@ -2713,16 +2713,19 @@ class $2D_Sprite {
         this.dir = dir;
         ImportTypeToConstructor(this, type);
         this.tint = tint;
-        if (this.asset) {
-            this.asset = ASSET[this.asset];
-            this.Nframes = this.asset.linear.length;
-            this.fps = this.fps || 60;
-            this.nextSpriteTime = 1000 / this.fps;
-        }
+        this.setAsset(this.asset);
         this.dirRef = Vector.toClass(this.dirRef);
         this.update(dir);
         this.show();
         this.updateModelMatrix();
+    }
+    setAsset(assetName) {
+        if (assetName) {
+            this.asset = ASSET[assetName];
+            this.Nframes = this.asset.linear.length;
+            this.fps = this.fps || 60;
+            this.nextSpriteTime = 1000 / this.fps;
+        }
     }
     show() {
         this.visible = true;
@@ -2803,7 +2806,7 @@ class $2D_Sprite {
 class $2D_Entity {
     constructor(grid, dir, type, GA, useViewport = false) {
         this.sprite = new $2D_Sprite(grid, dir, type);
-        this.actor = this.sprite;                               // legacy compatibility, redundant already?
+        this.actor = this.sprite;                               // legacy compatibility, redundant already? probably, but i like it, so ...
         this.moveState = new MoveState(grid, dir, GA);
         this.GA = GA;
         this.useViewport = useViewport;
@@ -2843,34 +2846,41 @@ class $2D_player extends $2D_Entity {
     move(dir) {
         this.parent.handleMove?.(dir);
     }
-    respond(lapsedTime) {
+    nothingWasPressed() {
+        this.parent.handleNothingWasPressed?.();
+    }
+    respond(lapsedTime, clear = false) {
         const keymap = ENGINE.GAME.keymap;
 
         if (this.parent.dead) return;
         if (this.moveState.moving) return;
 
         if (keymap[ENGINE.KEY.map.left]) {
-            keymap[ENGINE.KEY.map.left] = false;
+            if (clear) keymap[ENGINE.KEY.map.left] = false;
             this.move(LEFT);
             return;
         }
 
         if (keymap[ENGINE.KEY.map.right]) {
-            keymap[ENGINE.KEY.map.right] = false;
+            if (clear) keymap[ENGINE.KEY.map.right] = false;
             this.move(RIGHT);
             return;
         }
 
         if (keymap[ENGINE.KEY.map.up]) {
-            keymap[ENGINE.KEY.map.up] = false;
+            if (clear) keymap[ENGINE.KEY.map.up] = false;
             this.move(UP);
             return;
         }
 
         if (keymap[ENGINE.KEY.map.down]) {
-            keymap[ENGINE.KEY.map.down] = false;
+            if (clear) keymap[ENGINE.KEY.map.down] = false;
             this.move(DOWN);
+            return;
         }
+
+        /** capturing events which happen if nothing is pressed */
+        this.nothingWasPressed();
     }
     continueMove(lapsedTime) {
         if (this.parent.carried) this.parent.handleCarry?.(this.parent.carried);
