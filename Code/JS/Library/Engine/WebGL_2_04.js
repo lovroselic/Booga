@@ -2724,6 +2724,7 @@ class $2D_Sprite {
             this.Nframes = this.asset.linear.length;
             this.fps = this.fps || 60;
             this.nextSpriteTime = 1000 / this.fps;
+            this.reset();
         }
     }
     show() {
@@ -2754,7 +2755,6 @@ class $2D_Sprite {
         return this.area;
     }
     update(dir) {
-        this.reset();
         this.rotationFromDir(dir);
         this.getArea();
         this.updateModelMatrix();
@@ -2769,7 +2769,6 @@ class $2D_Sprite {
         let scaleX = this.w;
         if (this.dir.x !== 0) scaleX *= this.dir.x;
         glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [scaleX, this.h, 1]);
-        //glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [this.w, this.h, 1]);
         return this.modelMatrix;
     }
     updateAnimation(lapsedTime) {

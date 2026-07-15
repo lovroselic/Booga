@@ -38,7 +38,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.7",
+    VERSION: "0.4.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -163,7 +163,7 @@ const HERO = {
         this.player?.sprite.update(dir);
     },
     concludeAction() {
-        if (!HERO.player.moveState.moving) HERO.player.sprite.reset();
+        
     },
     die() {
         if (DEBUG.VERBOSE) {

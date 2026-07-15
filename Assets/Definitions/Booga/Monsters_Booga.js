@@ -15,7 +15,7 @@ const HERO_TYPE = {
         w: 64,
         h: 64,
         //speed: 3.0 * 64,
-        fps: 30,
+        fps: 10,
     }
 };
 

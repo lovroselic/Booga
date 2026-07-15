@@ -350,7 +350,7 @@ const GRID = {
         }
 
         sprite.setPosition(candidatePos);
-        console.log("candidatePos", candidatePos);
+
         if (animate) sprite.updateAnimation(lapsedTime);
         if (changeView) ENGINE.VIEWPORT.check(sprite.pos);
         ENGINE.VIEWPORT.alignToPosition(sprite.pos, sprite.vPos);
