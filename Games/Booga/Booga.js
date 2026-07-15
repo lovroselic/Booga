@@ -34,7 +34,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.3",
+    VERSION: "0.3.4",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -169,20 +169,7 @@ const HERO = {
         if (DEBUG.VERBOSE) console.note("playerSetUp, HERO set to start grid");
     },
     handleHoleMove(grid) {
-        const who = HERO.getWho(grid);
-
-        if (who) {
-            const which = PLANE_GRID1D.show(who);
-
-            if (which.category === "carrier") {
-                HERO.carried = who;
-                HERO.checkForwardProgress();
-                return;
-            }
-        }
-
-        AUDIO.Splash.play();
-        HERO.die();
+        //not applicable
     },
     getWho(grid) {
         const map = MAP.main.map;
@@ -191,8 +178,7 @@ const HERO = {
         return who;
     },
     handleEmptyMove(grid) {
-        HERO.carried = 0;
-        HERO.checkForwardProgress();
+        //not applicable
     },
     handleReservedMove(grid) {
         const GA = this.player.GA;
@@ -216,6 +202,15 @@ const HERO = {
             GAME.score += INI.SCORE_ROW;
             TITLE.score();
         }
+    },
+    handleOutOfBounds() {
+        //not applicable
+    },
+    handleCarry() {
+        //not applicable
+    },
+    handleMove(dir) {
+        console.info("handleMove", dir);
     }
 };
 

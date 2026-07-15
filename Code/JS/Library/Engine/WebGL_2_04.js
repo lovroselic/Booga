@@ -52,6 +52,7 @@ const WebGL = {
     NO_TOP_CEILING: false,                              // if true we don't display ctop ceiling  regardless of first person
     VIEWS_ALLOWED: new Set([1, 2, 3, 4, 5, 6, 7]),      // which cameras are set - default all, sys expects a set
     BUTTONS_APPENDED: false,                            // perspective buttons already appended  
+    VIEWPORT_SPEED: 2 * 64,                             // speed of viewport moving
     INI: {
         SCALE_DECAL: 1.0,                               // change/adapt decal scale for skewed surface based rendering
         ADDITIONAL_TOP_OFFSET: 0.0,                     // change/adapt top offset for skewed surface based rendering
@@ -2818,7 +2819,6 @@ class $2D_Entity {
         gl.drawArrays(gl.TRIANGLES, 0, spriteQuad.count);
     }
     startMoving(dir) {
-        this.parent.carried = 0;
         this.sprite.rotationFromDir(dir);
         this.moveState.next(dir);
     }
@@ -2838,107 +2838,70 @@ class $2D_player extends $2D_Entity {
         this.parent = parent;
         this.map = map;
         this.IA = map.enemyIA;
+        this.checkEndMove = this.checkEndMove.bind(this);
     }
     move(dir) {
-        let nextGrid = this.sprite.pos.to_FP_Grid();                    //FP grid based on sprite center position
-        
-        if (this.parent.carried) {
-            const which = PLANE_GRID1D.show(this.parent.carried);
-            const carrierDistance = which.speed / this.speed;
-            const GRID_EPSILON = 0.001;
-
-            nextGrid = FP_Grid.toClass(nextGrid);                       //needs sub grid resolution
-            nextGrid = nextGrid.add(which.dir, carrierDistance);        //compensating carrier direction
-            nextGrid = nextGrid.add(which.dir, GRID_EPSILON);           //compensating for rounding error
-
-            this.moveState.endGrid = Grid.toClass(nextGrid);
-            this.moveState.homeGrid = Grid.toClass(nextGrid);
-            this.moveState.startGrid = Grid.toClass(nextGrid);
-        }
-
-        let targetGrid = Grid.toClass(nextGrid).add(dir);
-
-        if (this.GA.isOutOfBounds(targetGrid)) return this.parent.die();
-        if (this.GA.isWall(targetGrid)) return;
-
-        //allowed moves so far: EMPTY, HOLE
-        this.startMoving(dir);
+        this.parent.handleMove?.(dir);
     }
     respond(lapsedTime) {
-        const map = ENGINE.GAME.keymap;
+        const keymap = ENGINE.GAME.keymap;
 
         if (this.parent.dead) return;
         if (this.moveState.moving) return;
 
-        if (map[ENGINE.KEY.map.left]) {
-            ENGINE.GAME.keymap[ENGINE.KEY.map.left] = false;
+        if (keymap[ENGINE.KEY.map.left]) {
+            keymap[ENGINE.KEY.map.left] = false;
             this.move(LEFT);
             return;
         }
 
-        if (map[ENGINE.KEY.map.right]) {
-            ENGINE.GAME.keymap[ENGINE.KEY.map.right] = false;
+        if (keymap[ENGINE.KEY.map.right]) {
+            keymap[ENGINE.KEY.map.right] = false;
             this.move(RIGHT);
             return;
         }
 
-        if (map[ENGINE.KEY.map.up]) {
-            ENGINE.GAME.keymap[ENGINE.KEY.map.up] = false;
+        if (keymap[ENGINE.KEY.map.up]) {
+            keymap[ENGINE.KEY.map.up] = false;
             this.move(UP);
             return;
         }
 
-        if (map[ENGINE.KEY.map.down]) {
-            ENGINE.GAME.keymap[ENGINE.KEY.map.down] = false;
+        if (keymap[ENGINE.KEY.map.down]) {
+            keymap[ENGINE.KEY.map.down] = false;
             this.move(DOWN);
-            return;
         }
     }
     continueMove(lapsedTime) {
-        if (this.parent.carried) this.carry(this.parent.carried);
+        if (this.parent.carried) this.parent.handleCarry?.(this.parent.carried);
         if (!this.moveState.moving) return;
-        GRID.translateMove2D(this, lapsedTime, this.checkEndMove.bind(this), true, this.useViewport);
+        GRID.translateMove2D(this, lapsedTime, this.checkEndMove, true, this.useViewport);
     }
     checkEndMove() {
-        const endValue = this.GA.getValue(this.moveState.startGrid);
+        const endValue = this.GA.getValue(this.moveState.startGrid);                        // translateMove2D commits the reached destination into startGrid
         const grid = this.moveState.startGrid;
 
+        /**
+         * incomplete, to be developed further
+         */
         switch (endValue) {
-            case MAPDICT.HOLE:
-                return this.handleHoleMove(grid);
-                break;
-            case MAPDICT.EMPTY:
-                return this.handleEmptyMove(grid);
-                break;
-            case MAPDICT.RESERVED:
-                return this.handleReservedMove(grid);
-                break;
-            default:
-                throw new Error("unmanaged end move", REVERSED_MAPDICT[endValue]);
+            case MAPDICT.HOLE: return this.handleHoleMove(grid);
+            case MAPDICT.EMPTY: return this.handleEmptyMove(grid);
+            case MAPDICT.RESERVED: return this.handleReservedMove(grid);
+            default: throw new Error(`Unmanaged end move: ${REVERSED_MAPDICT[endValue] ?? endValue}`);
         }
     }
     handleHoleMove(grid) {
-        if (this.parent.handleHoleMove) this.parent.handleHoleMove(grid);
+        this.parent.handleHoleMove?.(grid);
     }
     handleEmptyMove(grid) {
-        if (this.parent.handleEmptyMove) this.parent.handleEmptyMove(grid);
+        this.parent.handleEmptyMove?.(grid);
     }
     handleReservedMove(grid) {
-        if (this.parent.handleReservedMove) this.parent.handleReservedMove(grid);
+        this.parent.handleReservedMove?.(grid);
     }
     addDeathTexture(img) {
         this.deathTexture = WebGL.createTexture(img);
-    }
-    carry(who) {
-        const which = PLANE_GRID1D.show(who);
-        this.sprite.setPosition(which.sprite.pos);                                  //copy sprite position
-
-        this.moveState.startGrid = Grid.toClass(which.moveState.startGrid);         //copy ms grid from carrier to hero
-        this.moveState.homeGrid = Grid.toClass(which.moveState.homeGrid);           //copy ms grid from carrier to hero
-        this.moveState.endGrid = Grid.toClass(which.moveState.endGrid);             //copy ms grid from carrier to hero
-
-        if (this.GA.isOutOfBounds(this.moveState.homeGrid)) return this.parent.die();
-        if (!which.sprite.visible) return this.parent.die();
     }
 }
 

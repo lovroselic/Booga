@@ -852,7 +852,7 @@ const MAPDICT = {
     STAIR: 2 ** 5,                          //32
     SHRINE: 2 ** 6,                         //64
 
-    //alternative1 - RUN scpecific
+    //alternative1 - RUN specific
     TRAP_DOOR: 2 ** 3,                      //8
     VACANT_PLACEHOLDER3: 2 ** 5,            //32
     DEAD_END: 2 ** 6,                       //64
