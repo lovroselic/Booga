@@ -12,6 +12,7 @@
 LoadSheetSequences = [
     { srcName: "FleaIdle.png", count: 1, name: "FleaIdle", trim: false },
     { srcName: "FleaJump.png", count: 5, name: "FleaJump", trim: false },
+    { srcName: "FleaSide.png", count: 1, name: "FleaSide", trim: false },
 ];
 
 LoadFonts = [

@@ -36,7 +36,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.3.5",
+    VERSION: "0.3.6",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -125,25 +125,35 @@ const HERO = {
         this.jumpPower = 0;
         this.setMode();
     },
-    setMode(mode = "idle") {
+    setMode(mode = "idle", dir = UP) {
         /**
          * idle
+         * side, idle but with attitude
          * jumping
-         * falling
+         * falling, idle but with rotation, maybe
          */
         if (mode === this.mode) return;
         this.mode = mode;
 
         switch (this.mode) {
             case "idle":
+                this.player?.sprite.setAsset("FleaIdle");
+                this.player?.sprite.setDirRef(UP);
+                break;
             case "falling":
                 this.player?.sprite.setAsset("FleaIdle");
                 break;
             case "jumping":
                 this.player?.sprite.setAsset("FleaJump");
                 break;
+            case "side":
+                this.player?.sprite.setAsset("FleaSide");
+                this.player?.sprite.setDirRef(dir);
+                break;
             default: throw new Error(`Hero mode not suported: ${this.mode}`)
         }
+
+        this.player?.sprite.update(dir);
     },
     concludeAction() {
         if (!HERO.player.moveState.moving) HERO.player.sprite.reset();
@@ -234,19 +244,24 @@ const HERO = {
         //not applicable
     },
     handleMove(dir) {
-        if (dir.y !== 0) return;                    // x-only
-        console.info("handleMove", dir);
+        if (dir.y !== 0) return;                                    // x-only
+        if (!["idle", "side"].includes(this.mode)) return;          // only selected modes
+
         this.jumpPower += INI.JUMP_POWER_INC;
         this.jumpPower = Math.min(this.jumpPower, INI.MAX_JUMP_POWER);
         if (!this.jumpDir) this.jumpDir = dir;
+        this.setMode("side", this.jumpDir);
     },
     handleNothingWasPressed() {
         console.warn("handleNothingWasPressed");
-        if (this.jumpPower > 0) {
-            this.performJump();
-            this.jumpPower = 0;
-            this.jumpDir = null;
-        }
+        if (this.mode !== "side") return;
+        if (this.jumpPower <= 0) return;
+
+        this.performJump();
+
+        //cleanup
+        this.jumpPower = 0;
+        this.jumpDir = null;
     },
     performJump() {
         console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);

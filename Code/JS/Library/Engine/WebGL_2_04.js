@@ -2714,10 +2714,9 @@ class $2D_Sprite {
         ImportTypeToConstructor(this, type);
         this.tint = tint;
         this.setAsset(this.asset);
-        this.dirRef = Vector.toClass(this.dirRef);
+        this.setDirRef(this.dirRef);
         this.update(dir);
         this.show();
-        this.updateModelMatrix();
     }
     setAsset(assetName) {
         if (assetName) {
@@ -2732,6 +2731,9 @@ class $2D_Sprite {
     }
     hide() {
         this.visible = false;
+    }
+    setDirRef(dirRef) {
+        this.dirRef = Vector.toClass(dirRef);
     }
     rotationFromDir(dir) {
         this.dir = dir;
@@ -2755,20 +2757,19 @@ class $2D_Sprite {
         this.reset();
         this.rotationFromDir(dir);
         this.getArea();
+        this.updateModelMatrix();
     }
     updateModelMatrix(useViewport) {
         if (!this.modelMatrix) this.modelMatrix = glMatrix.mat4.create();
 
         glMatrix.mat4.identity(this.modelMatrix);
-
-        if (useViewport) {
-            glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.vPos.x), Math.round(this.vPos.y), 0]);
-        } else {
-            glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(this.pos.x), Math.round(this.pos.y), 0]);
-        }
-
+        const pos = useViewport ? this.vPos : this.pos;
+        glMatrix.mat4.translate(this.modelMatrix, this.modelMatrix, [Math.round(pos.x), Math.round(pos.y), 0]);
         glMatrix.mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.rotation || 0);
-        glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [this.w, this.h, 1]);
+        let scaleX = this.w;
+        if (this.dir.x !== 0) scaleX *= this.dir.x;
+        glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [scaleX, this.h, 1]);
+        //glMatrix.mat4.scale(this.modelMatrix, this.modelMatrix, [this.w, this.h, 1]);
         return this.modelMatrix;
     }
     updateAnimation(lapsedTime) {
