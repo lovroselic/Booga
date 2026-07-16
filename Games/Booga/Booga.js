@@ -38,7 +38,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.4.1",
+    VERSION: "0.4.2",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -396,9 +396,13 @@ const GAME = {
         this.buildWorld(level);
         ENGINE.VIEWPORT.setMax({ x: MAP[level].pw, y: MAP[level].ph });
         this.createBitmaps(level);
+        this.addMask(level);
     },
     async createBitmaps(level) {
         await BITMAP.store(TEXTURE[`final_level_${level}`], "screen");
+    },
+    addMask(level) {
+        MAP[level].map.maskdata = ENGINE.imgToAlphaMask(TEXTURE[`mask_level_${level}`]);
     },
     setWorld() {
         WebGL.init2D('webgl');

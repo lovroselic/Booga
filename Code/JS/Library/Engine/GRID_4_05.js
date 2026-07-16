@@ -407,11 +407,12 @@ const GRID = {
     checkWallCollision(entity, candidatePos) {
 
         const GA = entity.GA;
-        const sprite = entity.sprite;
+        //const sprite = entity.sprite;
         const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * 0.95;                       // slight tolerance. put to INI
         const dir = new Vector(Math.sign(entity.motion.velocity.x), 0);
         const jumpY = Math.sign(entity.motion.velocity.y);
         const mode = entity.parent.mode;
+        const maskdata = entity.map.maskdata;
 
         /**
         * modes can be:
@@ -440,7 +441,7 @@ const GRID = {
 
         if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
 
-        console.info("checkWallCollision", candidatePos, "dir", dir, "jumpY", jumpY, "mode", mode);
+        console.info("checkWallCollision", candidatePos, "dir", dir, "jumpY", jumpY, "mode", mode, "maskdata", maskdata);
 
         for (const testType of Object.keys(test)) {
             const T = test[testType];
@@ -451,23 +452,22 @@ const GRID = {
 
             switch (gridValue) {
                 case MAPDICT.EMPTY: continue;
+                case MAPDICT.MASK:
+                    const result = GRID.checkMaskedGrid(T, maskdata);
+                    if (result.hit) return result;
+                    continue;
                 case MAPDICT.WALL: return { hit: true, type: T.type, contact: T.position, };
-                case MAPDICT.MASK: return GRID.checkMaskedGrid(T);
                 default: throw new Error(`checkWallCollision grid Value not supported ${gridValue}, ${REVERSED_MAPDICT[gridValue]}`);
             }
         }
 
         return { hit: false, type: null, contact: null, };                              // All applicable probes completed without detecting a collision.
     },
-    checkMaskedGrid(test) {
-
-        /**
-         * TODO: check mask
-         * associate mask image to map, map to entity;
-         */
-        console.warn("checkMaskedGrid", test, "ignored!");
-
-        return { hit: false, type: null, contact: null, }; //placehodler
+    checkMaskedGrid(test, maskdata) {
+        console.warn("checkMaskedGrid", test);
+        const hit = ENGINE.isMaskWall(maskdata, test.position.x, test.position.y);
+        if (hit) return { hit: true, type: test.type, contact: test.position, };
+        return { hit: false, type: null, contact: null, }; //no hit
     },
     resolveWallCollision(entity, collision, currentPos, candidatePos) {
         /**

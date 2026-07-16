@@ -959,6 +959,106 @@ const ENGINE = {
     },
 
     /**
+     * Converts an image's alpha channel into a compact binary collision mask.
+     *
+     * The image is drawn once onto an internal canvas and its pixel data is read
+     * with `getImageData()`. Each source pixel becomes one byte in the returned
+     * `Uint8Array`:
+     *
+     * - `1` when the pixel alpha is greater than or equal to `alphaThreshold`
+     * - `0` when the pixel alpha is below `alphaThreshold`
+     *
+     * The returned data is stored in row-major order. The mask value for a pixel
+     * at `(x, y)` can therefore be accessed with:
+     *
+     * `data[y * width + x]`
+     *
+     * This method is intended to run during asset or level initialization rather
+     * than during the game loop, because reading canvas pixel data is relatively
+     * expensive.
+     *
+     * The source image must be fully loaded and must satisfy browser same-origin
+     * or CORS requirements. Otherwise, the canvas may become tainted and
+     * `getImageData()` will throw a security exception.
+     *
+     * @param {HTMLImageElement|HTMLCanvasElement|ImageBitmap|OffscreenCanvas} image
+     * The loaded image or other drawable image source whose alpha channel will be
+     * converted into a binary mask.
+     *
+     * @param {number} [alphaThreshold=128]
+     * Minimum alpha value considered solid, in the inclusive range `0–255`.
+     * Pixels with alpha greater than or equal to this value become `1`; all other
+     * pixels become `0`.
+     *
+     * @returns {{
+     *     width: number,
+     *     height: number,
+     *     data: Uint8Array
+     * }}
+     * An object containing the mask dimensions and a row-major binary pixel array.
+     *
+     * @throws {DOMException}
+     * Thrown by `getImageData()` when the canvas is tainted by a cross-origin image
+     * that was not loaded with appropriate CORS permissions.
+     */
+    imgToAlphaMask(image, alphaThreshold = 128) {
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(image, 0, 0, width, height);
+
+        const rgba = ctx.getImageData(0, 0, width, height).data;
+        const data = new Uint8Array(width * height);
+
+        for (let pixel = 0, rgbaIndex = 3; pixel < data.length; pixel++, rgbaIndex += 4) {
+            data[pixel] = rgba[rgbaIndex] >= alphaThreshold ? 1 : 0;
+        }
+
+        return { width, height, data };
+    },
+
+    /**
+     * Checks whether a pixel in a binary collision mask is solid.
+     *
+     * The supplied coordinates are rounded down to integer pixel coordinates
+     * before lookup. Mask data is expected to be stored in row-major order, where
+     * each pixel can be accessed with:
+     *
+     * `mask.data[y * mask.width + x]`
+     *
+     * A value of `1` represents a solid pixel. Any other value is treated as empty.
+     * Coordinates outside the mask bounds are also treated as empty.
+     *
+     * @param {{
+     *     width: number,
+     *     height: number,
+     *     data: Uint8Array
+     * }} mask
+     * Binary collision mask created by `imgToAlphaMask()`.
+     *
+     * @param {number} x
+     * Horizontal pixel coordinate within the mask.
+     *
+     * @param {number} y
+     * Vertical pixel coordinate within the mask.
+     *
+     * @returns {boolean}
+     * `true` when the specified pixel is inside the mask bounds and contains the
+     * value `1`; otherwise `false`.
+     */
+    isMaskWall(mask, x, y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
+        return mask.data[y * mask.width + x] === 1;
+    },
+
+    /**
      * Retrieves image data from a given image source, with optional offsets.
      * 
      * @param {HTMLImageElement|SVGImageElement|HTMLVideoElement|HTMLCanvasElement|OffscreenCanvas} img - The image source from which to extract the image data.
@@ -971,6 +1071,7 @@ const ENGINE = {
         const ctx = canvas.getContext("2d");
         return ctx.getImageData(offX, offY, canvas.width, canvas.height);
     },
+
     extractImg(x, y, CTX, trim = true) {
         var data, imgDATA;
         var NTX = LAYER.temp2;
