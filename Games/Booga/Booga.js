@@ -38,7 +38,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.4.0",
+    VERSION: "0.4.1",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -163,7 +163,7 @@ const HERO = {
         this.player?.sprite.update(dir);
     },
     concludeAction() {
-        
+
     },
     die() {
         if (DEBUG.VERBOSE) {
@@ -277,7 +277,7 @@ const HERO = {
         const component = speed * Math.SQRT1_2;                     // cos(45°) and sin(45°)
         const mode = "jumping";
         this.setMode(mode, this.jumpDir);
-        this.player.motion.setType(mode);                      // no importance, but aligned with mode, just in case
+        this.player.motion.setType(mode);                           // no importance, but aligned with mode, just in case
         this.player.motion.setVelocity({ x: this.jumpDir.x * component, y: -component });
         this.player.motion.setAcceleration({ x: 0, y: INI.GRAVITY });
         this.player.motion.activate();
@@ -296,6 +296,7 @@ const HERO = {
          * type: blocked -> use currentPos, next direction DOWN, update mode (falling)
          * type: surface -> use candidatePos, calc direction, update mode (sliding)
          * 
+         * returnsh whether envent is finished
          * returns new position, which might be candidatePos or currentPos
          */
 

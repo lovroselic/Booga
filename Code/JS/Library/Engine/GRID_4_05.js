@@ -333,7 +333,7 @@ const GRID = {
     translateSpritePosition(entity, lapsedTime, onFinish = null, animate = true, changeView = false) {
         const motion = entity.motion;
         if (!motion?.active) return;
-        const sprite = entity.sprite;   //no need to check whether it exist - it has to!
+        const sprite = entity.sprite;
         const dt = (lapsedTime / 1000);
 
         motion.velocity.x += motion.acceleration.x * dt;
@@ -343,7 +343,7 @@ const GRID = {
         let candidatePos = currentPos.translate(motion.velocity, dt);       // and returns Point
         const collision = GRID.checkWallCollision(entity, candidatePos);
 
-        let result = { finished: false};
+        let result = { finished: false };
         if (collision.hit) {
             result = GRID.resolveWallCollision(entity, collision, currentPos, candidatePos);
             candidatePos = result.pos ?? candidatePos;                      //whatevers comes out of evaluation, this is new position to be used
@@ -359,26 +359,115 @@ const GRID = {
             onFinish?.(result);
         }
     },
+
+    /**
+     * Checks whether an entity's proposed position collides with the level grid.
+     *
+     * The collision model assumes a side-view 2D game and tests up to three
+     * points around the sprite:
+     *
+     * - `top` detects overhead obstacles while jumping.
+     * - `side` detects obstacles in the horizontal movement direction while
+     *   jumping or sliding.
+     * - `bottom` detects supporting surfaces while descending, falling, or sliding.
+     *
+     * Collision results are classified into two engine-level types:
+     *
+     * - `"blocked"` — the movement cannot continue normally; the game may convert
+     *   the motion into falling.
+     * - `"surface"` — the entity has reached supporting terrain; the game may
+     *   resolve this as landing or sliding.
+     *
+     * During the ascending part of a jump, the bottom probe is ignored so that
+     * the surface the entity has just left is not detected as an immediate landing.
+     *
+     * Full wall cells produce an immediate collision. Masked cells are delegated
+     * to `GRID.checkMaskedGrid()`, which performs pixel-level collision testing.
+     * The method only detects and classifies collisions; game-specific consequences
+     * are handled later by `resolveWallCollision()` and the entity's parent.
+     *
+     * @param {$2D_Entity} entity
+     * The moving entity. It must provide `GA`, `sprite`, `motion`, and a parent
+     * with a current movement `mode`.
+     *
+     * @param {Point} candidatePos
+     * The proposed sprite-center position for the current movement update.
+     *
+     * @returns {{
+     *     hit: boolean,
+     *     type: ("blocked"|"surface"|null),
+     *     contact: (Point|null)
+     * }}
+     * A collision result containing:
+     *
+     * - `hit`: whether a collision was detected.
+     * - `type`: the general collision category.
+     * - `contact`: the tested position at which the collision occurred.
+     */
     checkWallCollision(entity, candidatePos) {
 
+        const GA = entity.GA;
+        const sprite = entity.sprite;
+        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * 0.95;                       // slight tolerance. put to INI
+        const dir = new Vector(Math.sign(entity.motion.velocity.x), 0);
+        const jumpY = Math.sign(entity.motion.velocity.y);
+        const mode = entity.parent.mode;
+
         /**
-        * TODO:
-        * collision top, botom, side -> horizontal in move direction
-        * top and side indicates -> no landing -> blocked
-        * bottom indicates landing or sliding -> surface
-        * so we can have 2 types: blocked, surface
-        * this still splits the responsibility between game and engine
-        * assuming this will always be used as side perspective - it probably will
-        * normal used for ?? booga will not bounce but fall straight down!
-        * then I also don't need currentPos
+        * modes can be:
+        * jumping -> blocked, surface checks (top, side) -> blocked, (bottom) -> surface
+        * falling -> surface, chechs (bottom) -> surface
+        * sliding -> blocked, surface, checks (side) -> blocked, (bottom) -> surface
         */
 
-        return {
-            hit: false,
-            type: null,
-            contacts: [],
-            //normal: null 
+        const createTest = (direction, app, type, cat) => {
+            const position = candidatePos.translate(direction, gs2);
+            const grid = position.to_Grid();
+
+            return {
+                position,
+                grid,
+                value: GA.getValue(grid),
+                app, type, cat,
+            };
         };
+
+        const test = {
+            top: createTest(UP, ["jumping"], "blocked", "top"),
+            side: createTest(dir, ["jumping", "sliding"], "blocked", "side"),
+            bottom: createTest(DOWN, ["jumping", "sliding", "falling"], "surface", "bottom"),
+        };
+
+        if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
+
+        console.info("checkWallCollision", candidatePos, "dir", dir, "jumpY", jumpY, "mode", mode);
+
+        for (const testType of Object.keys(test)) {
+            const T = test[testType];
+            if (!T.app.includes(mode)) continue;                                        //only test applicable, order of tests matter
+            if (mode === "jumping" && T.cat === "bottom" && jumpY === -1) continue;     //ignore bottom check when jumping di is still up
+            console.log("-->T", T);
+            const gridValue = T.value;
+
+            switch (gridValue) {
+                case MAPDICT.EMPTY: continue;
+                case MAPDICT.WALL: return { hit: true, type: T.type, contact: T.position, };
+                case MAPDICT.MASK: return GRID.checkMaskedGrid(T);
+                default: throw new Error(`checkWallCollision grid Value not supported ${gridValue}, ${REVERSED_MAPDICT[gridValue]}`);
+            }
+        }
+
+        return { hit: false, type: null, contact: null, };                              // All applicable probes completed without detecting a collision.
+    },
+    checkMaskedGrid(test) {
+
+        /**
+         * TODO: check mask
+         * associate mask image to map, map to entity;
+         */
+        console.warn("checkMaskedGrid", test, "ignored!");
+
+        return { hit: false, type: null, contact: null, }; //placehodler
     },
     resolveWallCollision(entity, collision, currentPos, candidatePos) {
         /**

@@ -2708,8 +2708,8 @@ class $3D_Camera {
 class $2D_Sprite {
     constructor(grid, dir, type, tint = [1, 1, 1, 1]) {
         this.grid = grid;
-        this.pos = GRID.gridToCenterPX(grid);
-        this.vPos = GRID.gridToCenterPX(grid);                      //viewport support
+        this.pos = GRID.gridToCenterPX(grid);                       // Point
+        this.vPos = GRID.gridToCenterPX(grid);                      // Point - viewport support
         this.dir = dir;
         ImportTypeToConstructor(this, type);
         this.tint = tint;
