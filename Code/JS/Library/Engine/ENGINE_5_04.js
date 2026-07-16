@@ -1030,30 +1030,10 @@ const ENGINE = {
      * each pixel can be accessed with:
      *
      * `mask.data[y * mask.width + x]`
-     *
-     * A value of `1` represents a solid pixel. Any other value is treated as empty.
-     * Coordinates outside the mask bounds are also treated as empty.
-     *
-     * @param {{
-     *     width: number,
-     *     height: number,
-     *     data: Uint8Array
-     * }} mask
-     * Binary collision mask created by `imgToAlphaMask()`.
-     *
-     * @param {number} x
-     * Horizontal pixel coordinate within the mask.
-     *
-     * @param {number} y
-     * Vertical pixel coordinate within the mask.
-     *
-     * @returns {boolean}
-     * `true` when the specified pixel is inside the mask bounds and contains the
-     * value `1`; otherwise `false`.
      */
-    isMaskWall(mask, x, y) {
-        x = Math.floor(x);
-        y = Math.floor(y);
+    isMaskWall(mask, point) {
+        const x = Math.floor(point.x);
+        const y = Math.floor(point.y);
         if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
         return mask.data[y * mask.width + x] === 1;
     },
@@ -4246,6 +4226,12 @@ class Motion2D {
         this.active = true;
     }
     deactivate() {
+        this.active = false;
+        this.type = null;
+        this.velocity = new FP_Vector();
+        this.acceleration = new FP_Vector();
+    }
+    pause() {
         this.active = false;
     }
     setVelocity(velocity) {

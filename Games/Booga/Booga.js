@@ -31,14 +31,16 @@ const DEBUG = {
 const INI = {
     SCREEN_BORDER: 64,
     MAX_LEVEL: 1,
-    JUMP_POWER_INC: 1,      // not tuned
-    MAX_JUMP_POWER: 100,    // not tuned
-    JUMP_SPEED_FACTOR: 20,  // converts charged power into pixels/second
-    GRAVITY: 500,           // pixels/second² 500
+    JUMP_POWER_INC: 1,          // not tuned
+    MAX_JUMP_POWER: 100,        // not tuned
+    JUMP_SPEED_FACTOR: 20,      // converts charged power into pixels/second
+    GRAVITY: 500,               // pixels/second² 500
+    FEET: 18,                   // px apart from ceter, for testing surface stability 
+    FEET_ANGLE_TOLERANCE: 2,    // px
 };
 
 const PRG = {
-    VERSION: "0.4.2",
+    VERSION: "0.4.3",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -149,6 +151,7 @@ const HERO = {
             case "falling":
             case "sliding":
                 this.player?.sprite.setAsset("FleaIdle");
+                this.player?.sprite.setDirRef(dir);
                 break;
             case "jumping":
                 this.player?.sprite.setAsset("FleaJump");
@@ -290,15 +293,75 @@ const HERO = {
     },
     handlePositionCollision(context) {
         console.warn("Position collision", context);
+        const entity = context.entity;
+        const motion = entity.motion;
+        const contact = Point.rounded(context.collision.contact);
+        const maskdata = entity.map.maskdata;
+
+        /**
+         *  entity,
+            collision,
+                hit:  
+                type:  
+                contact:  
+            currentPos,
+            candidatePos
+         */
 
         /**
          * TODO: from contacts, resolved sliding or landing
          * type: blocked -> use currentPos, next direction DOWN, update mode (falling)
          * type: surface -> use candidatePos, calc direction, update mode (sliding)
          * 
-         * returnsh whether envent is finished
+         * returns whether envent is finished: boolean
          * returns new position, which might be candidatePos or currentPos
          */
+
+        const type = context.collision.type;
+
+        switch (type) {
+            case "blocked":
+                /**
+                 * booga just starting falling vertically
+                 */
+                console.info(".blocked");
+                motion.velocity.x = 0;                                                                      // stop side movement
+                motion.velocity.y = motion.velocity.y ? motion.velocity.y > 0 : -motion.velocity.y;         // keep speed down or revert from up
+                this.setMode("falling", DOWN);
+                motion.setType("falling");
+                break;
+            case "surface":
+                console.info(".surface, contact", contact);
+                /**
+                 * first we check each feet
+                 */
+
+                const feet = [contact.translate(LEFT, INI.FEET), contact.translate(RIGHT, INI.FEET)];
+                const wall = feet.map((pos) => ENGINE.isMaskWall(maskdata, pos));
+                console.log("..wall", wall);
+                if (wall.every(value => value)) {
+                    /**
+                     * this is a stable ground
+                     */
+                    console.log("... stable");
+                    this.setMode("idle", UP);
+                    motion.deactivate();
+
+                    return {
+                        finished: true,
+                        pos: context.candidatePos,
+                    };
+                } else {
+                    /**
+                     * not stable ground
+                     */
+                    console.log("... unstable");
+                }
+
+                throw "debug";
+                break;
+            default: throw new Error(`handlePositionCollision wrong event type ${type}`);
+        }
 
         return {
             finished: false,
@@ -306,11 +369,11 @@ const HERO = {
         };
     },
     handleFinishedJump(result) {
-        console.warn("handleFinishedJump", result);
+        console.error("handleFinishedJump", result);
         /**
          * TODO
-         * set mode idel
-         * clean movestate, pretty reduindant but nice form
+         * clean movestate, 
+         *  - monster might use it for hunting
          * and whatever I forgot
          */
     }

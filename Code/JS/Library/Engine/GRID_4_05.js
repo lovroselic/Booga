@@ -407,19 +407,11 @@ const GRID = {
     checkWallCollision(entity, candidatePos) {
 
         const GA = entity.GA;
-        //const sprite = entity.sprite;
-        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * 0.95;                       // slight tolerance. put to INI
+        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * 0.975;                       // slight tolerance. put to INI
         const dir = new Vector(Math.sign(entity.motion.velocity.x), 0);
         const jumpY = Math.sign(entity.motion.velocity.y);
         const mode = entity.parent.mode;
         const maskdata = entity.map.maskdata;
-
-        /**
-        * modes can be:
-        * jumping -> blocked, surface checks (top, side) -> blocked, (bottom) -> surface
-        * falling -> surface, chechs (bottom) -> surface
-        * sliding -> blocked, surface, checks (side) -> blocked, (bottom) -> surface
-        */
 
         const createTest = (direction, app, type, cat) => {
             const position = candidatePos.translate(direction, gs2);
@@ -441,13 +433,11 @@ const GRID = {
 
         if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
 
-        console.info("checkWallCollision", candidatePos, "dir", dir, "jumpY", jumpY, "mode", mode, "maskdata", maskdata);
 
         for (const testType of Object.keys(test)) {
             const T = test[testType];
             if (!T.app.includes(mode)) continue;                                        //only test applicable, order of tests matter
             if (mode === "jumping" && T.cat === "bottom" && jumpY === -1) continue;     //ignore bottom check when jumping di is still up
-            console.log("-->T", T);
             const gridValue = T.value;
 
             switch (gridValue) {
@@ -464,15 +454,11 @@ const GRID = {
         return { hit: false, type: null, contact: null, };                              // All applicable probes completed without detecting a collision.
     },
     checkMaskedGrid(test, maskdata) {
-        console.warn("checkMaskedGrid", test);
-        const hit = ENGINE.isMaskWall(maskdata, test.position.x, test.position.y);
+        const hit = ENGINE.isMaskWall(maskdata, test.position);
         if (hit) return { hit: true, type: test.type, contact: test.position, };
         return { hit: false, type: null, contact: null, }; //no hit
     },
     resolveWallCollision(entity, collision, currentPos, candidatePos) {
-        /**
-         * expected type: blocked, surface
-         */
         return entity.parent?.handlePositionCollision?.({
             entity,
             collision,
