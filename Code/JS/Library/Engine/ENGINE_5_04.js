@@ -1023,6 +1023,53 @@ const ENGINE = {
     },
 
     /**
+     * Converts a black-and-white image into a binary collision mask.
+     *
+     * White pixels become solid (`1`) and black pixels become empty (`0`).
+     *
+     * @param {CanvasImageSource} image Source mask image.
+     * @param {number} [threshold=128] Minimum brightness considered solid.
+     * @returns {{width: number, height: number, data: Uint8Array}}
+     */
+    imgToBinaryMask(image, threshold = 128) {
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d", {
+            willReadFrequently: true
+        });
+
+        ctx.drawImage(image, 0, 0, width, height);
+
+        const rgba = ctx.getImageData(0, 0, width, height).data;
+        const data = new Uint8Array(width * height);
+
+        for (
+            let pixel = 0, rgbaIndex = 0;
+            pixel < data.length;
+            pixel++, rgbaIndex += 4
+        ) {
+            const r = rgba[rgbaIndex];
+            const g = rgba[rgbaIndex + 1];
+            const b = rgba[rgbaIndex + 2];
+
+            const brightness = (r + g + b) / 3;
+
+            data[pixel] = brightness >= threshold ? 1 : 0;
+        }
+
+        return {
+            width,
+            height,
+            data
+        };
+    },
+
+    /**
      * Checks whether a pixel in a binary collision mask is solid.
      *
      * The supplied coordinates are rounded down to integer pixel coordinates
@@ -1036,6 +1083,30 @@ const ENGINE = {
         const y = Math.floor(point.y);
         if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
         return mask.data[y * mask.width + x] === 1;
+    },
+
+    /**
+     * finds th first wall point under empty pixel in upward direction
+     * mutates point! beware
+     * @param {*} mask maskdata obj
+     * @param {*} origin Point
+     */
+    adjustYToWallEdge(mask, origin) {
+        // revise
+        if (ENGINE.isMaskWall(mask, origin)) {
+            while (ENGINE.isMaskWall(mask, origin)) {
+                origin.y--; //up
+                //console.log("up", origin.y, ENGINE.isMaskWall(mask, origin));
+            }
+            origin.y++; //give back what was taken prematurelly
+        } else {
+            do {
+                origin.y++; //down
+                //console.log("down", origin.y, ENGINE.isMaskWall(mask, origin));
+            } while (!ENGINE.isMaskWall(mask, origin))
+        }
+
+        return origin;
     },
 
     /**

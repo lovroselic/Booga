@@ -824,6 +824,12 @@ class Point extends MasterGridClass {
         this.x = this.x - ENGINE.VIEWPORT.vx;
         this.y = this.y - ENGINE.VIEWPORT.vy;
     }
+    toViewportCopy() {
+        //change to offset
+        let x = this.x - ENGINE.VIEWPORT.vx;
+        let y = this.y - ENGINE.VIEWPORT.vy;
+        return new Point(x, y);
+    }
     toAbsolute() {
         this.x = this.x + ENGINE.VIEWPORT.vx;
         this.y = this.y + ENGINE.VIEWPORT.vy;

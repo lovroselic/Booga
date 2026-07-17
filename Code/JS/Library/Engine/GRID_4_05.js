@@ -24,6 +24,7 @@ const GRID = {
         EPSILON: 0.05,
         FORWARD_CIRCLE_RESOLUTION: 2,
         FORWARD_CIRCLE_CHECK_ANGLE: Math.PI / 4,
+        WALL_COLLISION_TOLERANCE: 0.975,
     },
     collisionBoundingBox(A, B) {
         /**
@@ -407,7 +408,7 @@ const GRID = {
     checkWallCollision(entity, candidatePos) {
 
         const GA = entity.GA;
-        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * 0.975;                       // slight tolerance. put to INI
+        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * GRID.SETTING.WALL_COLLISION_TOLERANCE;                       // slight tolerance. put to INI
         const dir = new Vector(Math.sign(entity.motion.velocity.x), 0);
         const jumpY = Math.sign(entity.motion.velocity.y);
         const mode = entity.parent.mode;
@@ -431,7 +432,7 @@ const GRID = {
             bottom: createTest(DOWN, ["jumping", "sliding", "falling"], "surface", "bottom"),
         };
 
-        if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
+        //if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
 
 
         for (const testType of Object.keys(test)) {
@@ -451,7 +452,9 @@ const GRID = {
             }
         }
 
-        return { hit: false, type: null, contact: null, };                              // All applicable probes completed without detecting a collision.
+        if (mode === "sliding") return { hit: true, type: "unsupported", contact: test.bottom.position, };  //sliding without support requires resolution -> "unsupported"
+
+        return { hit: false, type: null, contact: null, };                                                 // All applicable probes completed without detecting a collision.
     },
     checkMaskedGrid(test, maskdata) {
         const hit = ENGINE.isMaskWall(maskdata, test.position);

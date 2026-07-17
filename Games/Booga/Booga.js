@@ -36,11 +36,12 @@ const INI = {
     JUMP_SPEED_FACTOR: 20,      // converts charged power into pixels/second
     GRAVITY: 500,               // pixels/second² 500
     FEET: 18,                   // px apart from ceter, for testing surface stability 
-    FEET_ANGLE_TOLERANCE: 2,    // px
+    MIN_SLIDE_SPEED: 500,       // minimal sliding speed when sliding
+    PLANE_Y_TOLERANCE: 1,       //px difference still means flat
 };
 
 const PRG = {
-    VERSION: "0.4.3",
+    VERSION: "0.4.4",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -292,81 +293,105 @@ const HERO = {
         );
     },
     handlePositionCollision(context) {
-        console.warn("Position collision", context);
         const entity = context.entity;
         const motion = entity.motion;
-        const contact = Point.rounded(context.collision.contact);
         const maskdata = entity.map.maskdata;
-
-        /**
-         *  entity,
-            collision,
-                hit:  
-                type:  
-                contact:  
-            currentPos,
-            candidatePos
-         */
-
-        /**
-         * TODO: from contacts, resolved sliding or landing
-         * type: blocked -> use currentPos, next direction DOWN, update mode (falling)
-         * type: surface -> use candidatePos, calc direction, update mode (sliding)
-         * 
-         * returns whether envent is finished: boolean
-         * returns new position, which might be candidatePos or currentPos
-         */
+        let contact = Point.rounded(context.collision.contact);
+        const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * GRID.SETTING.WALL_COLLISION_TOLERANCE;
+        let origin = Point.rounded(context.currentPos.translate(DOWN, gs2));
+        let candidate = Point.rounded(context.candidatePos.translate(DOWN, gs2));
+        console.warn("Position collision", context, "contact", contact);
 
         const type = context.collision.type;
 
         switch (type) {
             case "blocked":
-                /**
-                 * booga just starting falling vertically
-                 */
                 console.info(".blocked");
                 motion.velocity.x = 0;                                                                      // stop side movement
-                motion.velocity.y = motion.velocity.y ? motion.velocity.y > 0 : -motion.velocity.y;         // keep speed down or revert from up
+                motion.velocity.y = Math.abs(motion.velocity.y);                                            // keep speed down or revert from up
                 this.setMode("falling", DOWN);
                 motion.setType("falling");
-                break;
-            case "surface":
-                console.info(".surface, contact", contact);
-                /**
-                 * first we check each feet
-                 */
+                motion.setAcceleration({ x: 0, y: INI.GRAVITY });
+                return { finished: false, pos: context.currentPos, };
 
-                const feet = [contact.translate(LEFT, INI.FEET), contact.translate(RIGHT, INI.FEET)];
-                const wall = feet.map((pos) => ENGINE.isMaskWall(maskdata, pos));
-                console.log("..wall", wall);
-                if (wall.every(value => value)) {
-                    /**
-                     * this is a stable ground
-                     */
+            case "unsupported":
+                console.info(".unsupported");
+                motion.velocity.x = 0;
+                motion.velocity.y = Math.abs(motion.velocity.y);
+                this.setMode("falling", DOWN);
+                motion.setType("falling");
+                motion.setAcceleration({ x: 0, y: INI.GRAVITY });
+                return { finished: false, pos: context.candidatePos, };
+
+            case "surface":
+                contact = ENGINE.adjustYToWallEdge(maskdata, contact);                                     // adjust
+                const feet = [
+                    ENGINE.adjustYToWallEdge(maskdata, contact.translate(LEFT, INI.FEET)),
+                    ENGINE.adjustYToWallEdge(maskdata, contact.translate(RIGHT, INI.FEET))
+                ];
+
+                console.info(".surface, contact", contact, "feet", feet);
+                const Y = [feet[0].y, contact.y, feet[1].y];
+                const lined = (Math.max(...Y) - Math.min(...Y)) <= INI.PLANE_Y_TOLERANCE;               //tolerance, set to INI
+                console.info("..Y", Y, "lined", lined);
+
+
+                if (lined) {
+                    // this is a stable ground
                     console.log("... stable");
                     this.setMode("idle", UP);
-                    motion.deactivate();
+                    origin = ENGINE.adjustYToWallEdge(maskdata, origin);
+                    origin.y--;                                                 //one px up, out of wall
+                    const finalSafePos = Point.rounded(origin.translate(UP, gs2));
+                    //console.info("....origin untransformed", origin, "transformed", finalSafePos);
+                    this.paintLanding([contact, ...feet]); //debug
 
-                    return {
-                        finished: true,
-                        pos: context.candidatePos,
-                    };
+                    return { finished: true, pos: finalSafePos, };
                 } else {
-                    /**
-                     * not stable ground
-                     */
+                    //not stable ground
                     console.log("... unstable");
+
+                    let slideDir;
+                    if (feet[0].y < feet[1].y) {
+                        slideDir = RIGHT;
+                    } else if (feet[0].y > feet[1].y) {
+                        slideDir = LEFT;
+                    } else slideDir = [LEFT, RIGHT].chooseRandom();         // Symmetrical or ambiguous surface: choose a direction.
+
+                    motion.velocity.y = Math.max(Math.abs(motion.velocity.y), INI.MIN_SLIDE_SPEED);
+                    motion.velocity.x = motion.velocity.y * slideDir.x;
+                    motion.setAcceleration({ x: 0, y: 0 });
+
+                    if (
+                        (
+                            feet[0].y < contact.y &&
+                            Math.abs(contact.y - feet[1].y) <= INI.PLANE_Y_TOLERANCE
+                        ) ||
+                        (
+                            feet[1].y < contact.y &&
+                            Math.abs(contact.y - feet[0].y) <= INI.PLANE_Y_TOLERANCE
+                        )
+                    ) {
+                        motion.velocity.y = 0;                              // slide horizontally
+                    }
+
+                    this.setMode("sliding", slideDir);
+                    motion.setType("sliding");
+                    this.paintLanding([contact, ...feet]); //debug
+                    return { finished: false, pos: context.candidatePos, };
                 }
 
-                throw "debug";
-                break;
             default: throw new Error(`handlePositionCollision wrong event type ${type}`);
         }
-
-        return {
-            finished: false,
-            pos: context.candidatePos,
-        };
+    },
+    paintLanding(points) {
+        ENGINE.clearLayer("fill");
+        const CTX = LAYER.fill;
+        CTX.fillStyle = "#FFF";
+        for (const point of points) {
+            let p = point.toViewportCopy()
+            CTX.pixelAtPoint(p, 3);
+        }
     },
     handleFinishedJump(result) {
         console.error("handleFinishedJump", result);
@@ -463,9 +488,10 @@ const GAME = {
     },
     async createBitmaps(level) {
         await BITMAP.store(TEXTURE[`final_level_${level}`], "screen");
+        //await BITMAP.store(TEXTURE[`mask_level_${level}`], "screen"); //debug
     },
     addMask(level) {
-        MAP[level].map.maskdata = ENGINE.imgToAlphaMask(TEXTURE[`mask_level_${level}`]);
+        MAP[level].map.maskdata = ENGINE.imgToBinaryMask(TEXTURE[`mask_level_${level}`]);
     },
     setWorld() {
         WebGL.init2D('webgl');
