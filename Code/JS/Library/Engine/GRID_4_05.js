@@ -25,6 +25,8 @@ const GRID = {
         FORWARD_CIRCLE_RESOLUTION: 2,
         FORWARD_CIRCLE_CHECK_ANGLE: Math.PI / 4,
         WALL_COLLISION_TOLERANCE: 0.975,
+        COLLISION_STEP: 2,
+        MAX_MOTION_SPEED: 3500,
     },
     collisionBoundingBox(A, B) {
         /**
@@ -330,31 +332,58 @@ const GRID = {
         return;
     },
 
-
     translateSpritePosition(entity, lapsedTime, onFinish = null, animate = true, changeView = false) {
         const motion = entity.motion;
         if (!motion?.active) return;
         const sprite = entity.sprite;
-        const dt = (lapsedTime / 1000);
+        const dt = lapsedTime / 1000;
+        const maxStep = GRID.SETTING.COLLISION_STEP;
+        const maxSpeed = GRID.SETTING.MAX_MOTION_SPEED;
 
-        motion.velocity.x += motion.acceleration.x * dt;
-        motion.velocity.y += motion.acceleration.y * dt;
+        const clampSpeed = value => Math.max(-maxSpeed, Math.min(maxSpeed, value));
+        motion.velocity.x = clampSpeed(motion.velocity.x);
+        motion.velocity.y = clampSpeed(motion.velocity.y);
 
-        const currentPos = sprite.pos;                                      //this is class Point
-        let candidatePos = currentPos.translate(motion.velocity, dt);       // and returns Point
-        const collision = GRID.checkWallCollision(entity, candidatePos);
+        const projectedVelocityX = clampSpeed(motion.velocity.x + motion.acceleration.x * dt);
+        const projectedVelocityY = clampSpeed(motion.velocity.y + motion.acceleration.y * dt);
 
+        const maxAxisSpeed = Math.max(
+            Math.abs(motion.velocity.x),
+            Math.abs(motion.velocity.y),
+            Math.abs(projectedVelocityX),
+            Math.abs(projectedVelocityY)
+        );
+
+        const frameDisplacement = maxAxisSpeed * dt;
+        const steps = Math.max(1, Math.ceil(frameDisplacement / maxStep));
+        const subDt = dt / steps;
+
+        let currentPos = sprite.pos;
         let result = { finished: false };
-        if (collision.hit) {
-            result = GRID.resolveWallCollision(entity, collision, currentPos, candidatePos);
-            candidatePos = result.pos ?? candidatePos;                      //whatevers comes out of evaluation, this is new position to be used
+
+        for (let step = 0; step < steps; step++) {
+            motion.velocity.x = clampSpeed(motion.velocity.x + motion.acceleration.x * subDt);
+            motion.velocity.y = clampSpeed(motion.velocity.y + motion.acceleration.y * subDt);
+
+            let candidatePos = currentPos.translate(motion.velocity, subDt);
+            const collision = GRID.checkWallCollision(entity, candidatePos);
+
+            if (collision.hit) {
+                result = GRID.resolveWallCollision(entity, collision, currentPos, candidatePos);
+                currentPos = result.pos ?? candidatePos;
+                break;
+            }
+
+            currentPos = candidatePos;
         }
 
-        sprite.setPosition(candidatePos);
+        sprite.setPosition(currentPos);
 
         if (animate) sprite.updateAnimation(lapsedTime);
         if (changeView) ENGINE.VIEWPORT.check(sprite.pos);
+
         ENGINE.VIEWPORT.alignToPosition(sprite.pos, sprite.vPos);
+
         if (result.finished) {
             motion.deactivate();
             onFinish?.(result);

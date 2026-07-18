@@ -816,6 +816,9 @@ class Point extends MasterGridClass {
     static rounded(point) {
         return new Point(Math.round(point.x), Math.round(point.y));
     }
+    static clone(point) {
+        return new Point(point.x, point.y);
+    }
     translate(vector, len = ENGINE.INI.GRIDPIX) {
         return new Point(this.x + vector.x * len, this.y + vector.y * len);
     }

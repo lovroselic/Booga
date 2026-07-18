@@ -1086,26 +1086,64 @@ const ENGINE = {
     },
 
     /**
-     * finds th first wall point under empty pixel in upward direction
-     * mutates point! beware
-     * @param {*} mask maskdata obj
-     * @param {*} origin Point
+     * Finds a nearby upper wall-edge point in the vertical column of `p`.
+     *
+     * The input point is cloned before processing and is therefore not mutated.
+     *
+     * Search behavior depends on the starting pixel:
+     *
+     * - If the cloned point starts inside a wall, the search moves upward until
+     *   it reaches an empty pixel. It then moves one pixel back down and returns
+     *   the last wall pixel immediately below that empty pixel.
+     *
+     * - If the cloned point starts outside a wall, the search moves downward until
+     *   it reaches the first wall pixel and returns that point.
+     *
+     * The search is limited by `maxIter`. This method always returns a `Point`,
+     * even when no wall edge is found within the permitted distance:
+     *
+     * - An upward search that reaches the limit returns the last known wall point
+     *   within the searched range.
+     * - A downward search that reaches the limit returns the final tested point,
+     *   which may still be outside the wall.
+     *
+     * Callers that must know whether the returned point is solid should verify it
+     * with `ENGINE.isMaskWall(mask, returnedPoint)`.
+     *
+     * @param {{
+     *     width: number,
+     *     height: number,
+     *     data: Uint8Array
+     * }} mask
+     * Binary collision mask in which `1` represents a wall pixel and `0`
+     * represents empty space.
+     *
+     * @param {Point} p
+     * Starting world-space pixel position. The supplied point is not modified.
+     *
+     * @param {number} [maxIter=ENGINE.INI.GRIDPIX]
+     * Maximum number of pixels to search vertically. Defaults to one grid cell.
+     *
+     * @returns {Point}
+     * A cloned and vertically adjusted point. When an edge is found, this is the
+     * first wall pixel directly beneath empty space. When the search limit is
+     * exhausted, it is the final fallback point described above.
      */
-    adjustYToWallEdge(mask, origin) {
-        // revise
+    adjustYToWallEdge(mask, p, maxIter = ENGINE.INI.GRIDPIX) {
+        const origin = Point.clone(p);
+
         if (ENGINE.isMaskWall(mask, origin)) {
-            while (ENGINE.isMaskWall(mask, origin)) {
-                origin.y--; //up
-                //console.log("up", origin.y, ENGINE.isMaskWall(mask, origin));
+            while (ENGINE.isMaskWall(mask, origin) && maxIter > 0) {
+                origin.y--; // Search upward.
+                maxIter--;
             }
-            origin.y++; //give back what was taken prematurelly
+            origin.y++; // Return to the last wall pixel below the discovered empty pixel.
         } else {
             do {
-                origin.y++; //down
-                //console.log("down", origin.y, ENGINE.isMaskWall(mask, origin));
-            } while (!ENGINE.isMaskWall(mask, origin))
+                origin.y++; // Search downward.
+                maxIter--;
+            } while (!ENGINE.isMaskWall(mask, origin) && maxIter > 0);
         }
-
         return origin;
     },
 
