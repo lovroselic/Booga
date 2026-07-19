@@ -127,6 +127,7 @@ const WebGL = {
         VANISHING_WARNING_FACTOR: 0.2,
         VANISHING_RESET: -1,
         VANISHING_WARNING_ALPHA: 0.55,
+        VIEWPORT_SPEED: 16,             // vp movement speed
     },
     setGridSize(size) {
         this.INI.GRID_SIZE = size;
@@ -2850,11 +2851,49 @@ class $2D_player extends $2D_Entity {
     nothingWasPressed() {
         this.parent.handleNothingWasPressed?.();
     }
+    moveViewport(dir) {
+        ENGINE.VIEWPORT.vx += dir.x * WebGL.INI.VIEWPORT_SPEED;
+        ENGINE.VIEWPORT.vy += dir.y * WebGL.INI.VIEWPORT_SPEED;
+        ENGINE.VIEWPORT.checkViewport();
+
+        //align all the actors
+        ENGINE.VIEWPORT.alignToPosition(this.actor.pos, this.actor.vPos);
+        ENGINE.VIEWPORT.changed = true;
+    }
     respond(lapsedTime, clear = false) {
         const keymap = ENGINE.GAME.keymap;
 
         if (this.parent.dead) return;
         if (this.moveState.moving) return;
+
+        if (keymap[ENGINE.KEY.map.ctrl]) {
+            console.info("ctrl");
+
+            if (keymap[ENGINE.KEY.map.left]) {
+                if (clear) keymap[ENGINE.KEY.map.left] = false;
+                this.moveViewport(LEFT);
+                return;
+            }
+
+            if (keymap[ENGINE.KEY.map.right]) {
+                if (clear) keymap[ENGINE.KEY.map.right] = false;
+                this.moveViewport(RIGHT);
+                return;
+            }
+
+            if (keymap[ENGINE.KEY.map.up]) {
+                if (clear) keymap[ENGINE.KEY.map.up] = false;
+                this.moveViewport(UP);
+                return;
+            }
+
+            if (keymap[ENGINE.KEY.map.down]) {
+                if (clear) keymap[ENGINE.KEY.map.down] = false;
+                this.moveViewport(DOWN);
+                return;
+            }
+
+        }
 
         if (keymap[ENGINE.KEY.map.left]) {
             if (clear) keymap[ENGINE.KEY.map.left] = false;

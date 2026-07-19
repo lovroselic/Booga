@@ -1393,6 +1393,46 @@ const ENGINE = {
             URL.revokeObjectURL(url);
         }, "image/png");
     },
+    saveCTXAsWEBP(CTX, filename, background = null, quality = 0.95) {
+        if (!CTX || !CTX.canvas) throw new Error("saveCTXAsWEBP: expected a 2D canvas context.");
+        const source = CTX.canvas;
+        const temp = document.createElement("canvas");
+
+        temp.width = source.width;
+        temp.height = source.height;
+
+        const TCTX = temp.getContext("2d");
+
+        // A newly created canvas is transparent by default.
+        if (background !== null) {
+            TCTX.fillStyle = background;
+            TCTX.fillRect(0, 0, temp.width, temp.height);
+        }
+
+        TCTX.drawImage(source, 0, 0);
+
+        temp.toBlob(
+            (blob) => {
+                if (!blob) {
+                    throw new Error("saveCTXAsWEBP: failed to create WebP blob.");
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+
+                a.href = url;
+                a.download = filename;
+
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                URL.revokeObjectURL(url);
+            },
+            "image/webp",
+            quality
+        );
+    },
     KEY: {
         on() {
             $(document).keydown(ENGINE.GAME.checkKey);
@@ -1722,18 +1762,28 @@ const ENGINE = {
         changeFromBitmap(from, to) {
             ENGINE.VIEWPORT.change(from, to);                       //alias for compatibility
         },
+        /**
+         * check includes actor
+         */
         check(actor, max = ENGINE.VIEWPORT.max) {
             let vx = actor.x - ENGINE.gameWIDTH / 2;
             let vy = actor.y - ENGINE.gameHEIGHT / 2;
-            if (vx < 0) vx = 0;
-            if (vy < 0) vy = 0;
-            if (vx > max.x - ENGINE.gameWIDTH) vx = max.x - ENGINE.gameWIDTH;
-            if (vy > max.y - ENGINE.gameHEIGHT) vy = max.y - ENGINE.gameHEIGHT;
+
+            vx = Math.max(0, Math.min(vx, max.x - ENGINE.gameWIDTH));
+            vy = Math.max(0, Math.min(vy, max.y - ENGINE.gameHEIGHT));
+
             if (vx != ENGINE.VIEWPORT.vx || vy != ENGINE.VIEWPORT.vy) {
                 ENGINE.VIEWPORT.vx = vx;
                 ENGINE.VIEWPORT.vy = vy;
                 ENGINE.VIEWPORT.changed = true;
             }
+        },
+        /**
+         * exluding actor from check
+         */
+        checkViewport(max = ENGINE.VIEWPORT.max) {
+            ENGINE.VIEWPORT.vx = Math.max(0, Math.min(ENGINE.VIEWPORT.vx, max.x));
+            ENGINE.VIEWPORT.vy = Math.max(0, Math.min(ENGINE.VIEWPORT.vy, max.y));
         },
         alignTo(actor) {
             actor.vx = actor.x - ENGINE.VIEWPORT.vx;

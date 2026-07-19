@@ -902,6 +902,7 @@ const GAME = {
                 switch (currentValue) {
                     case MAPDICT.EMPTY:
                     case MAPDICT.HOLE:
+                        case MAPDICT.MASK:
                         dir = GAME.getSelectedDir();
                         if (dir.same(NOWAY)) {
                             $("#error_message").html("Start needs direction");
@@ -1014,8 +1015,8 @@ const GAME = {
         const gs = parseInt($("#gridsize").val(), 10);
         if (gs !== 64) console.error("Image size usuitable for mask, gs", gs);
         ENGINE.mergeLayerStack(["paintedmask", "decals"], "final");
-        ENGINE.saveCTXAsPNG(LAYER.mask, `mask_level_${RoomID}.png`);
-        ENGINE.saveCTXAsPNG(LAYER.final, `final_level_${RoomID}.png`);
+        ENGINE.saveCTXAsWEBP(LAYER.mask, `mask_level_${RoomID}.png`);
+        ENGINE.saveCTXAsWEBP(LAYER.final, `final_level_${RoomID}.png`);
     },
     createMask() {
         const OK = confirm("Sure? Current mask will be lost.");

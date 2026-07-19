@@ -37,12 +37,11 @@ const INI = {
     GRAVITY: 500,               // pixels/second² 500
     FEET: 18,                   // px apart from ceter, for testing surface stability 
     MIN_SLIDE_SPEED: 500,       // minimal sliding speed when sliding
-    PLANE_Y_TOLERANCE: 1,       // px difference still means flat
-    //MAX_SPEED: 3500,            //
+    PLANE_Y_TOLERANCE: 5,       // px difference still means flat
 };
 
 const PRG = {
-    VERSION: "0.4.5",
+    VERSION: "0.4.6",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",

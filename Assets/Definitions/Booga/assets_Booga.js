@@ -153,6 +153,7 @@ LoadSprites = [
     { srcName: "MaskElements/HalfToLedge.png", name: "HalfToLedge" },
     { srcName: "MaskElements/ThirdToLedge.png", name: "ThirdToLedge" },
     { srcName: "MaskElements/RoughLine.png", name: "RoughLine" },
+    { srcName: "MaskElements/Line.png", name: "Line" },
 
     //UI
     //{ srcName: "UI/FroggessLife.png", name: "Lives" },
