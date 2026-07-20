@@ -110,6 +110,7 @@ LoadSprites = [
     { srcName: "MaskDecals/Mushroom_240.png", name: "Mushroom_240" },
     { srcName: "MaskDecals/Mushroom_241.png", name: "Mushroom_241" },
     { srcName: "MaskDecals/Mushroom_242.png", name: "Mushroom_242" },
+    { srcName: "MaskDecals/RocketBooga.png", name: "RocketBooga" },
 
 
     //mask elements for map editor
@@ -154,9 +155,8 @@ LoadSprites = [
     { srcName: "MaskElements/ThirdToLedge.png", name: "ThirdToLedge" },
     { srcName: "MaskElements/RoughLine.png", name: "RoughLine" },
     { srcName: "MaskElements/Line.png", name: "Line" },
+    { srcName: "MaskElements/ThirdToHalf.png", name: "ThirdToHalf" },
 
-    //UI
-    //{ srcName: "UI/FroggessLife.png", name: "Lives" },
 
 ];
 

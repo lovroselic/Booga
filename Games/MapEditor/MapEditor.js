@@ -1016,7 +1016,7 @@ const GAME = {
         if (gs !== 64) console.error("Image size usuitable for mask, gs", gs);
         ENGINE.mergeLayerStack(["paintedmask", "decals"], "final");
         ENGINE.saveCTXAsWEBP(LAYER.mask, `mask_level_${RoomID}.png`);
-        ENGINE.saveCTXAsWEBP(LAYER.final, `final_level_${RoomID}.png`);
+        ENGINE.saveCTXAsWEBP(LAYER.final, `final_level_${RoomID}.png`, "#000000");
     },
     createMask() {
         const OK = confirm("Sure? Current mask will be lost.");
