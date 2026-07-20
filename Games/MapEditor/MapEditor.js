@@ -59,7 +59,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.11.1",
+    VERSION: "0.11.2",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -421,14 +421,11 @@ const GAME = {
         }
         ENGINE.addBOX("WEBGL", 1024, 768, ["3d_webgl"], null);
 
-        $("#buttons").append("<input type='button' id='new' value='New'>");
+        $("#buttons").append("<input type='button' id='new' value='New' class='red_button>");
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
         $("#buttons").append("<input type='button' id='copy' value='MAP to Clipboard' class='green_button'>");
-        $("#buttons").append("<input type='button' id='create_mask' value='Create Mask' class='red_button'>");
         $("#buttons").append("<input type='button' id='download_mask' value='DownloadImgs'>");
-        $("#buttons").append("<input type='button' id='copy_mask' value='MASK to Clipboard' class='blue_button'>");
-        $("#buttons").append("<input type='button' id='copy_decal' value='DECAL to Clipboard' class='green_button'>");
         $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
 
         $("#gridsize").on("change", GAME.render);
@@ -1261,7 +1258,14 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         }
 
         if (INI.USE_TERRAIN) roomExport += `terrain: '${JSON.stringify($MAP.map.terrain)}',\n`;
+
+        if (INI.USE_MASK) {
+            roomExport += `mask: '${JSON.stringify($MAP.mask_moves)}',\n`;
+            roomExport += `maskdecals: '${JSON.stringify($MAP.mask_decal_moves)}',\n`;
+        }
+
         roomExport += `}`;
+
         $("#exp").val(roomExport);
     },
     import() {
@@ -1319,11 +1323,11 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             NOISE_FUNCTION.generate_terrain();
         }
 
-
-        //imort masks
         if (INI.USE_MASK) {
-            $MAP.mask_moves = JSON.parse($("#mask_moves_exp").val());
-            $MAP.mask_decal_moves = JSON.parse($("#mask_decal_moves_exp").val());
+            const masks = ImportText.extractGroup(/mask:\s\'(.*)\'/);
+            $MAP.mask_moves = JSON.parse(masks);
+            const maskdecals = ImportText.extractGroup(/maskdecals:\s\'(.*)\'/);
+            $MAP.mask_decal_moves = JSON.parse(maskdecals);
         }
 
         GAME.updateWH();
