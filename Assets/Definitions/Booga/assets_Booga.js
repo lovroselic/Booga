@@ -110,7 +110,7 @@ LoadSprites = [
     { srcName: "MaskDecals/Mushroom_240.png", name: "Mushroom_240" },
     { srcName: "MaskDecals/Mushroom_241.png", name: "Mushroom_241" },
     { srcName: "MaskDecals/Mushroom_242.png", name: "Mushroom_242" },
-    { srcName: "MaskDecals/RocketBooga.png", name: "RocketBooga" },
+    { srcName: "MaskDecals/RocketBooga.webp", name: "RocketBooga" },
 
 
     //mask elements for map editor

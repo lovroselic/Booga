@@ -1782,8 +1782,8 @@ const ENGINE = {
          * exluding actor from check
          */
         checkViewport(max = ENGINE.VIEWPORT.max) {
-            ENGINE.VIEWPORT.vx = Math.max(0, Math.min(ENGINE.VIEWPORT.vx, max.x));
-            ENGINE.VIEWPORT.vy = Math.max(0, Math.min(ENGINE.VIEWPORT.vy, max.y));
+            ENGINE.VIEWPORT.vx = Math.max(0, Math.min(ENGINE.VIEWPORT.vx, max.x - ENGINE.gameWIDTH));
+            ENGINE.VIEWPORT.vy = Math.max(0, Math.min(ENGINE.VIEWPORT.vy, max.y - ENGINE.gameHEIGHT));
         },
         alignTo(actor) {
             actor.vx = actor.x - ENGINE.VIEWPORT.vx;
@@ -3519,6 +3519,7 @@ const ENGINE = {
 
                     switch (value) {
                         case MAPDICT.EMPTY:
+                        case MAPDICT.RESERVED:
                             ENGINE.BLOCKGRID3D.block(x, y, "#000000");
                             break;
                         case MAPDICT.WALL:

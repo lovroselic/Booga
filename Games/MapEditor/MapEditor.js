@@ -59,7 +59,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.11.0",
+    VERSION: "0.11.1",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -902,7 +902,7 @@ const GAME = {
                 switch (currentValue) {
                     case MAPDICT.EMPTY:
                     case MAPDICT.HOLE:
-                        case MAPDICT.MASK:
+                    case MAPDICT.MASK:
                         dir = GAME.getSelectedDir();
                         if (dir.same(NOWAY)) {
                             $("#error_message").html("Start needs direction");
@@ -982,6 +982,7 @@ const GAME = {
                     case MAPDICT.MASK:
                     case MAPDICT.WALL:
                     case MAPDICT.EMPTY:
+                    case MAPDICT.RESERVED:
                         const elIndex = MASK_DECALS.indexOf($("#mask_decal")[0].value);
                         const rotation = parseInt($("#mask_rotation")[0].value, 10);
                         const image = $(`#maskdecalcanvas`)[0].getContext("2d").canvas;
