@@ -1381,14 +1381,12 @@ const ENGINE = {
 
         temp.toBlob((blob) => {
             if (!blob) return;
-
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
-
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }, "image/png");
@@ -1413,20 +1411,14 @@ const ENGINE = {
 
         temp.toBlob(
             (blob) => {
-                if (!blob) {
-                    throw new Error("saveCTXAsWEBP: failed to create WebP blob.");
-                }
-
+                if (!blob) throw new Error("saveCTXAsWEBP: failed to create WebP blob.");
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-
                 a.href = url;
                 a.download = filename;
-
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-
                 URL.revokeObjectURL(url);
             },
             "image/webp",
@@ -4682,6 +4674,7 @@ class Timer {
         this.delta = template.delta;
     }
     update() {
+        if (!this.active) return;
         this.now = (this.delta + (Date.now() - this.start)) / 1000;
         if (this.constructor.name === "CountDown") {
             if (this.now >= this.value) this.quit();
@@ -4721,10 +4714,11 @@ class Timer {
     }
 }
 class CountDown extends Timer {
-    constructor(id, seconds, func, kwargs) {
+    constructor(id, seconds, func, keep = false, kwargs = null) {
         super(id);
         this.value = seconds;
         this.func = func;
+        this.keep = keep;
         this.kwargs = kwargs || null;
         this.active = true;
     }
@@ -4741,7 +4735,15 @@ class CountDown extends Timer {
         this.active = false;
     }
     quit() {
-        this.unregister();
+        if (!this.active) return;
+        if (this.active) this.func.call(this);
+        if (!this.keep) {
+            this.unregister();
+        } else {
+            this.stop();
+            this.deactivate();
+
+        }
         if (this.active) this.func.call(this);
     }
     remains() {

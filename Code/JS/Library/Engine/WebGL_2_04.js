@@ -2792,6 +2792,12 @@ class $2D_Sprite {
         this.getArea();
         this.updateModelMatrix();
     }
+    getPosition() {
+        return this.pos;
+    }
+    getGrid() {
+        return GRID.pointToGrid(this.pos);
+    }
     move(dx, dy) {
         this.pos.x += dx;
         this.pos.y += dy;
@@ -2938,8 +2944,12 @@ class $2D_player extends $2D_Entity {
             case MAPDICT.HOLE: return this.handleHoleMove(grid);
             case MAPDICT.EMPTY: return this.handleEmptyMove(grid);
             case MAPDICT.RESERVED: return this.handleReservedMove(grid);
+            case MAPDICT.MASK: return this.handleMaskMove(grid);
             default: throw new Error(`Unmanaged end move: ${REVERSED_MAPDICT[endValue] ?? endValue}`);
         }
+    }
+    handleMaskMove(grid) {
+        this.parent.handleMaskMove?.(grid);
     }
     handleHoleMove(grid) {
         this.parent.handleHoleMove?.(grid);

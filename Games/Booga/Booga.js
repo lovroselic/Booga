@@ -38,10 +38,15 @@ const INI = {
     FEET: 18,                   // px apart from ceter, for testing surface stability 
     MIN_SLIDE_SPEED: 500,       // minimal sliding speed when sliding
     PLANE_Y_TOLERANCE: 5,       // px difference still means flat
+    SCORE_GOAL: 100,            // score for reaching rocket
+    SCORE_ROW: 1,               // score for getting higher
+    MAX_ROW: 40,                // hardconfig
+    LEVEL_TIME: 120,            // time to finish the level and get bonus: default 120
+    SCORE_PER_SECOND: 20,       // score per second if befor timeout
 };
 
 const PRG = {
-    VERSION: "0.5.1",
+    VERSION: "0.5.2",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -129,6 +134,7 @@ const HERO = {
         this.dead = false;
         this.jumpPower = 0;
         this.setMode();
+        this.row = INI.MAX_ROW;
 
         //binds
         this.handleFinishedJump = this.handleFinishedJump.bind(this);
@@ -177,7 +183,7 @@ const HERO = {
 
         if (HERO.dead) return;
         HERO.dead = true;
-
+        this.row = INI.MAX_ROW;
     },
     async death() {
         if (DEBUG.VERBOSE) console.red("HERO.death");
@@ -200,7 +206,8 @@ const HERO = {
     },
     completeLevel() {
         if (DEBUG.VERBOSE) console.ok("level completed");
-        //AUDIO.LevelUp.play();
+        GAME.levelComplete = true;
+        AUDIO.LevelUp.play();
         GAME.level = Math.min(INI.MAX_LEVEL, ++GAME.level);
         GAME.levelStart();
     },
@@ -210,6 +217,7 @@ const HERO = {
         const start_grid = Grid.toClass(map.startPosition.grid);
         HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map, true);
         //HERO.player.addDeathTexture(SPRITE.DeadFrog);
+        this.row = INI.MAX_ROW;
         if (GAME.time) GAME.time.unregister();
         if (DEBUG.VERBOSE) console.note("playerSetUp, HERO set to start grid");
     },
@@ -225,14 +233,12 @@ const HERO = {
     handleEmptyMove(grid) {
         //not applicable
     },
+    handleMaskMove(grid) { },
     handleReservedMove(grid) {
-        const GA = this.player.GA;
-        GA.toWall(grid);
-        ENGINE.drawToGrid("fill", grid, SPRITE.FroggessFilled);
         GAME.score += INI.SCORE_GOAL;
-        GAME.score += this.accumulatedBonus;
-        this.accumulatedBonus = 0;
         TITLE.score();
+        GAME.timeRemains = GAME.time.remains();
+        console.log("time remain", GAME.timeRemains);
         HERO.player.sprite.hide();
         GAME.time.stop();
         GAME.time.deactivate();
@@ -395,12 +401,19 @@ const HERO = {
     },
     handleFinishedJump(result) {
         console.error("handleFinishedJump", result);
-        /**
-         * TODO
-         * clean movestate, 
-         *  - monster might use it for hunting
-         * and whatever I forgot
-         */
+        const sprite = this.player.sprite;
+        const grid = sprite.getGrid();
+        this.player.moveState.reset(grid);
+        this.checkForwardProgress();
+        this.player.checkEndMove();
+    },
+    checkForwardProgress() {
+        const currentRow = this.player.moveState.startGrid.y;
+        if (currentRow < this.row) {
+            GAME.score += INI.SCORE_ROW * (this.row - currentRow);
+            this.row = currentRow;
+            TITLE.score();
+        }
     }
 };
 
@@ -411,6 +424,7 @@ const GAME = {
     restarted: false,
     timerRunning: false,
     levelComplete: false,
+    timeRemains: null,
     start() {
         if (DEBUG.VERBOSE) console.log("GAME started");
         if (AUDIO.Title) {
@@ -442,12 +456,12 @@ const GAME = {
     WebGL_settings() {
         WebGL.INI.BACKGROUND_ALPHA = 0.0;
     },
-    levelStart() {
+    async levelStart() {
         if (DEBUG.VERBOSE) console.log("Starting level", GAME.level);
         GAME.prepareForRestart();
         HERO.construct();
         this.levelComplete = false;
-        GAME.initLevel(GAME.level);
+        await GAME.initLevel(GAME.level);
         GAME.continueLevel();
     },
     continueLevel() {
@@ -468,9 +482,7 @@ const GAME = {
         ENGINE.VIEWPORT.reset();
         ENGINE.VIEWPORT.check(HERO.player.actor.pos);
         ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos);
-        //ENGINE.VIEWPORT.report();
-
-        GAME.time = new Timer("main");
+        GAME.time = new CountDown("main", INI.LEVEL_TIME, GAME.completedTime, true);
         GAME.drawFirstFrame(GAME.level);
         ENGINE.GAME.resume();
     },
@@ -478,12 +490,12 @@ const GAME = {
         WebGL.hero.camera2D = new $2D_Camera(ENGINE.gameWIDTH, ENGINE.gameHEIGHT);
         WebGL.camera = WebGL.hero.camera2D;
     },
-    initLevel(level) {
+    async initLevel(level) {
         if (DEBUG.VERBOSE) console.info("init level", level);
         this.newDungeon(level);
         this.buildWorld(level);
         ENGINE.VIEWPORT.setMax({ x: MAP[level].pw, y: MAP[level].ph });
-        this.createBitmaps(level);
+        await this.createBitmaps(level);
         this.addMask(level);
     },
     async createBitmaps(level) {
@@ -547,7 +559,11 @@ const GAME = {
     drawFirstFrame(level) {
         if (DEBUG.VERBOSE) console.log("drawing first frame");
         if (DEBUG._2D_display) GRID.paintCoord("coord", MAP.main.map);
+
         TITLE.firstFrame();
+        ENGINE.VIEWPORT.changed = true;
+        ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos); 
+        GAME.updateVieport();
     },
     run(lapsedTime) {
         if (ENGINE.GAME.stopAnimation) return;
@@ -635,24 +651,27 @@ const GAME = {
         SCORE.checkScore(GAME.score);
         SCORE.hiScore();
     },
-    /*goalReachedRun() {
+    completedTime() {
+        console.error("completed time", GAME.time.remains());
+        //
+    },
+    goalReachedRun() {
         if (ENGINE.GAME.stopAnimation) return;
-        GAME.time.decrease(1);
-        GAME.score += INI.SCORE_PER_SECOND;
-        const remains = GAME.time.remains();
-        if (remains <= 0) {
-            HERO.to_fill--;
-            if (HERO.to_fill === 0) return HERO.completeLevel();
+        if (GAME.timeRemains > 0) {
+            GAME.timeRemains--;
+            GAME.score += INI.SCORE_PER_SECOND;
+            GAME.goalReachedFrameDraw();
+        } else {
+            GAME.timeRemains = null;
+            HERO.completeLevel();
             HERO.playerSetUp();
             ENGINE.GAME.resume();
         }
-
-        GAME.goalReachedFrameDraw();
-    },*/
-    /*goalReachedFrameDraw() {
+    },
+    goalReachedFrameDraw() {
         TITLE.time();
         TITLE.score();
-    }*/
+    }
 };
 
 const TITLE = {
@@ -849,6 +868,7 @@ const TITLE = {
         CTX.font = fs + "px Booga";
         CTX.textAlign = "left";
         CTX.fillStyle = "rgb(11, 239, 11)";
+        if (!GAME.time.active) CTX.fillStyle = "rgb(228, 193, 19)";
         CTX.shadowColor = "#24843a";
         CTX.shadowOffsetX = 1;
         CTX.shadowOffsetY = 1;

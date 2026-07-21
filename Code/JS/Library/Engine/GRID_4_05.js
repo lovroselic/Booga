@@ -461,9 +461,6 @@ const GRID = {
             bottom: createTest(DOWN, ["jumping", "sliding", "falling"], "surface", "bottom"),
         };
 
-        //if ([test.top.value, test.side.value, test.bottom.value].every((val) => val === MAPDICT.EMPTY)) return { hit: false, type: null, contact: null, };   //exit early, nothing to check
-
-
         for (const testType of Object.keys(test)) {
             const T = test[testType];
             if (!T.app.includes(mode)) continue;                                        //only test applicable, order of tests matter
@@ -472,6 +469,7 @@ const GRID = {
 
             switch (gridValue) {
                 case MAPDICT.EMPTY: continue;
+                case MAPDICT.RESERVED: continue;
                 case MAPDICT.MASK:
                     const result = GRID.checkMaskedGrid(T, maskdata);
                     if (result.hit) return result;

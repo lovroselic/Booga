@@ -57,7 +57,9 @@ LoadTextures = [
 
 LoadAudio = [
     { srcName: "Expect No Mercy - LaughingSkull.mp3", name: "Title" },
-    //{ srcName: "death.mp3", name: "Death" },
+    { srcName: "death.mp3", name: "Death" },
+    { srcName: "Level up.mp3", name: "LevelUp" },
+    { srcName: "thud.mp3", name: "Thud" },
 
 ];
 
