@@ -64,24 +64,26 @@
 
         <div id="help" class="section">
             <fieldset>
+                <legend>Help:</legend>
 
-                <legend>
-                    Help:
-                </legend>
                 <div class="row">
-
+                    <p>Charge each jump carefully and try to land where you intended. Failing that, somewhere non-fatal
+                        is also acceptable.</p>
+                    <p>Finish the level within the allotted time to earn a time bonus, because mere survival apparently
+                        deserves no applause.</p>
+                    <p>Avoid deadly creatures at all costs. They are not interested in negotiating, and you are
+                        conveniently bite-sized.</p>
                 </div>
 
                 <div class="row my-3">
-
                     <p><strong>KEYS:</strong></p>
-                    <p><kbd>LEFT</kbd> ... jump LEFT</p>
-                    <p><kbd>RIGHT</kbd> ... jump RIGHT</p>
-                    <p><kbd>CTRL Cursor</kbd> ... look around</p>
-                    <p><kbd>F4</kbd> ... pause/resume game</p>
-
+                    <p><kbd>LEFT</kbd> ... hold to charge a jump to the left; release to discover whether it was enough
+                    </p>
+                    <p><kbd>RIGHT</kbd> ... hold to charge a jump to the right; optimism remains optional</p>
+                    <p><kbd>CTRL</kbd> + <kbd>CURSOR KEYS</kbd> ... look around before leaping into something
+                        regrettable</p>
+                    <p><kbd>F4</kbd> ... pause/resume the game, and briefly reconsider your decisions</p>
                 </div>
-
             </fieldset>
         </div>
 
@@ -98,18 +100,49 @@
 
 
                     <div class="col-12 col-lg-6 my-2">
-                        <p><a href="https://en.wikipedia.org/wiki/Bugaboo_(The_Flea)" targt="_blank">BoogaBoo</a>, by
-                            Perdo Ruiz, Spanish programmer, was
-                            one of the most annoying games ever, was also one of the earliest I played on my C64.
-                            Originally created for,
-                            <a href="https://www.c64-wiki.de/wiki/Booga_Boo" targt="_blank">ZX Specturm</a>, it made my
-                            nerves crawl with it's repetitive music, and panicky movements. I tried countless times to
-                            complete first level, not even realising tha this is the only level, and it can be completed
-                            in mere <a href="https://www.youtube.com/watch?v=Kqg9DrqJibc" targt="_blank">half a
-                                minute</a>.
-                        </p>
                         <p>
+                            <a href="https://en.wikipedia.org/wiki/Bugaboo_(The_Flea)" target="_blank">Bugaboo (The
+                                Flea)</a>,
+                            created by Spanish programmer Pedro Ruiz, was one of the most infuriating games ever
+                            devised and
+                            naturally, one of the first games I played on my Commodore 64.
+                            Originally released for the
+                            <a href="https://www.c64-wiki.de/wiki/Booga_Boo" target="_blank">ZX Spectrum</a>,
+                            it delighted players with repetitive music, panic-driven movement and the constant suspicion
+                            that
+                            the flea had developed a personal grudge against them.
+                        </p>
 
+                        <p>
+                            I attempted to complete its first level countless times, never realising that it was also
+                            the last
+                            level and that somebody who actually knew what they were doing could finish the entire game
+                            in
+                            <a href="https://www.youtube.com/watch?v=Kqg9DrqJibc" target="_blank">about half a
+                                minute</a>.
+                            My own attempts generally lasted longer, although considerably less happened. Except feeding
+                            the dragon with own body.
+                        </p>
+
+                        <p>
+                            Therefore, when I accepted the challenge of creating an adaptation, my first design decision
+                            was
+                            obvious: multiple levels. There seemed little point in building an entire engine merely to
+                            reproduce
+                            thirty seconds of gameplay and several hours of emotional damage.
+                        </p>
+
+                        <p>
+                            My main development goal was once again to escape the grid constraints imposed by my own
+                            ENGINE,
+                            by using the grid in a slightly less obedient manner. A careful observer may notice that the
+                            irregular
+                            cave formations are assembled from reusable patterns, rotated, flipped and combined into
+                            more organic
+                            shapes. A background mask then provides the collision data required for sprite-to-cave
+                            interaction,
+                            allowing the scenery to look irregular while the engine quietly continues counting squares
+                            underneath.
                         </p>
                     </div>
 

@@ -10,6 +10,7 @@
 TODO:
     * 
 known bugs: 
+    * shallow sliding starts tunelling - not easily reproducible
     * i don't do bugs
 
 retests:
@@ -46,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.5.2",
+    VERSION: "0.5.3",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -207,7 +208,7 @@ const HERO = {
     completeLevel() {
         if (DEBUG.VERBOSE) console.ok("level completed");
         GAME.levelComplete = true;
-        AUDIO.LevelUp.play();
+        //AUDIO.LevelUp.play();
         GAME.level = Math.min(INI.MAX_LEVEL, ++GAME.level);
         GAME.levelStart();
     },
@@ -216,7 +217,7 @@ const HERO = {
         const start_dir = map.startPosition.vector;
         const start_grid = Grid.toClass(map.startPosition.grid);
         HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map, true);
-        //HERO.player.addDeathTexture(SPRITE.DeadFrog);
+        HERO.player.addDeathTexture(SPRITE.FleaSkeleton);
         this.row = INI.MAX_ROW;
         if (GAME.time) GAME.time.unregister();
         if (DEBUG.VERBOSE) console.note("playerSetUp, HERO set to start grid");
@@ -242,6 +243,7 @@ const HERO = {
         HERO.player.sprite.hide();
         GAME.time.stop();
         GAME.time.deactivate();
+        AUDIO.LevelUp.play();
         ENGINE.GAME.pauseBlock();
         ENGINE.GAME.paused = true;
         ENGINE.GAME.ANIMATION.next(GAME.goalReachedRun);

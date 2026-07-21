@@ -20,19 +20,15 @@ const HERO_TYPE = {
 };
 
 const MONSTER_TYPE = {
-    /*FlyBonus: {
-        name: "FlyBonus",
-        category: "bonus",
-        asset: "Fly",
-        score: 200,
-        w: 48,
+    DinoDragon: {
+        name: "DinoDragon",
+        category: "enemy",
+        asset: "DinoDragon",
+        w: 64,
         h: 64,
-        dirRef: UP,
-        animate: false,
-        canBlink: true,
-        blinkTimer: 10, 
-        canVanish: false,
-        vanishTimer: 0,
-    },*/
+        dirRef: RIGHT,
+        animate: true,
+        
+    },
 
 };

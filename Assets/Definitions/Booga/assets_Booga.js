@@ -13,6 +13,7 @@ LoadSheetSequences = [
     { srcName: "FleaIdle.png", count: 1, name: "FleaIdle", trim: false },
     { srcName: "FleaJump.png", count: 4, name: "FleaJump", trim: false },
     { srcName: "FleaSide.png", count: 1, name: "FleaSide", trim: false },
+    { srcName: "DinoDragon.png", count: 15, name: "DinoDragon", trim: false },
 ];
 
 LoadFonts = [
@@ -70,6 +71,8 @@ LoadShaders = [
 LoadSprites = [
     //UI
     { srcName: "UI/Booga.png", name: "Lives" },
+    //
+    { srcName: "Items/FleaSkeleton.png", name: "FleaSkeleton" },
     //mask decals
     { srcName: "MaskDecals/AmanitaClusterFullback1.png", name: "AmanitaClusterFullback1" },
     { srcName: "MaskDecals/AmanitaFullback1.png", name: "AmanitaFullback1" },

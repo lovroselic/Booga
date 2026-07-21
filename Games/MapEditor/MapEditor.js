@@ -20,11 +20,19 @@ const INI = {
     USE_OCCLUSION_MAP: false,
     USE_TEXTURES: true,
     USE_FLOORS: false,
+    USE_CEIL: false,
     USE_TERRAIN: false,
     USE_PANORAMA: false,
     USE_LIGHTS: false,
     USE_DECALS: false,
     USE_MASK: true,
+    USE_MONSTERS: true,
+    USE_STEPS: false,
+    USE_ENTITIES: false,
+    USE_ITEMS: false,
+    USE_MAZE: false,
+    USE_SAVEGAME: false,
+    USE_3D: false,
 };
 
 const MAP = {
@@ -59,7 +67,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.11.2",
+    VERSION: "0.20.0",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -88,6 +96,15 @@ const PRG = {
         $("#mask").click(GAME.maskVisibility);
         $("#all_coord").click(GAME.render);
         $("#grid").click(GAME.render);
+        $("#swap").on("click", GAME.swapGates);
+
+        //3d specific
+        $("#dimensions input[name=dimensions]").click(GAME.dimensions);
+        $("#hint_down").click(GAME.hintDown);
+        $("#hint_up").click(GAME.hintUp);
+        $("#clearHint").click(GAME.clearHints);
+        $("#floor_on_top").click(GAME.addFloor);
+        //
 
         $("#engine_version").html(ENGINE.VERSION);
         $("#grid_version").html(GRID.VERSION);
@@ -102,11 +119,20 @@ const PRG = {
         $("#buttons").on("click", "#export", GAME.export);
         $("#buttons").on("click", "#import", GAME.import);
         $("#buttons").on("click", "#copy", GAME.copyToClipboard);
-        $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
-        $("#buttons").on("click", "#copy_decal", GAME.copyDecalMaskToClipboard);
-        $("#buttons").on("click", "#create_mask", GAME.createMask);
-        $("#buttons").on("click", "#download_mask", GAME.downloadMask);
-        $("#buttons").on("click", "#textured_mask", GAME.textureToMask);
+
+        if (INI.USE_MASK) {
+            $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
+            $("#buttons").on("click", "#copy_decal", GAME.copyDecalMaskToClipboard);
+            $("#buttons").on("click", "#create_mask", GAME.createMask);
+            $("#buttons").on("click", "#download_mask", GAME.downloadMask);
+            $("#buttons").on("click", "#textured_mask", GAME.textureToMask);
+        }
+
+
+        if (INI.USE_MAZE) {
+            $("#buttons").on("click", "#arena", GAME.arena);
+            $("#buttons").on("click", "#maze", GAME.maze);
+        }
 
         MAP_TOOLS.INI.FOG = false;
         WebGL.PRUNE = false;
@@ -125,6 +151,10 @@ const PRG = {
             $("#floor_row").hide();
         }
 
+        if (!INI.USE_CEIL) {
+            $("#ceil_row").hide();
+        }
+
         if (!INI.USE_NOISE_FUNCTIONS) {
             $("#noise_row").hide();
         }
@@ -132,17 +162,43 @@ const PRG = {
         if (!INI.USE_LIGHTS) {
             $("#material_light_row").hide();
             $("#show_lights").hide();
+            $(".use_lights").hide();
         }
 
         if (!INI.USE_DECALS) {
             $("#show_decals").hide();
+            $(".use_decals").hide();
         }
 
         if (!INI.USE_MASK) {
             $("#show_mask_paint").hide();
-            $("#mask_export").hide();
             $("#show_mask_decals").hide();
-            $("#mask_decal_export").hide();
+            $(".use_masks").hide();
+        }
+
+        if (!INI.USE_MONSTERS) {
+            $("#show_monsters").hide();
+            $(".use_monsters").hide();
+        }
+
+        if (!INI.USE_STEPS) {
+            $(".use_steps").hide();
+        }
+
+        if (!INI.USE_ENTITIES) {
+            $(".use_entities").hide();
+        }
+
+        if (!INI.USE_ITEMS) {
+            $(".use_items").hide();
+        }
+
+        if (!INI.USE_SAVEGAME) {
+            $(".use_savegame").hide();
+        }
+
+        if (!INI.USE_3D) {
+            $(".use_3d").hide();
         }
     },
     start() {
@@ -425,8 +481,16 @@ const GAME = {
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
         $("#buttons").append("<input type='button' id='copy' value='MAP to Clipboard' class='green_button'>");
-        $("#buttons").append("<input type='button' id='download_mask' value='DownloadImgs'>");
-        $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
+
+        if (INI.USE_MASK) {
+            $("#buttons").append("<input type='button' id='download_mask' value='DownloadImgs'>");
+            $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
+        }
+
+        if (INI.USE_MAZE) {
+            $("#buttons").append("<input type='button' id='arena' value='Arena'>");
+            $("#buttons").append("<input type='button' id='maze' value='Maze'>");
+        }
 
         $("#gridsize").on("change", GAME.render);
 
@@ -440,16 +504,19 @@ const GAME = {
         for (const prop of TEXTURE_LIST) {
             $("#walltexture").append(`<option value="${prop}">${prop}</option>`);
             $("#floortexture").append(`<option value="${prop}">${prop}</option>`);
+            $("#ceiltexture").append(`<option value="${prop}">${prop}</option>`);
             $("#texture_decal").append(`<option value="${prop}">${prop}</option>`);
         }
 
         LAYER.wallcanvas = $("#wallcanvas")[0].getContext("2d");
         LAYER.floorcanvas = $("#floorcanvas")[0].getContext("2d");
+        LAYER.ceilcanvas = $("#ceilcanvas")[0].getContext("2d");
         LAYER.texturecanvas = $("#texturecanvas")[0].getContext("2d");
 
 
         $("#walltexture").change(GAME.updateTextures);
         $("#floortexture").change(GAME.updateTextures);
+        $("#ceiltexture").change(GAME.updateTextures);
         $("#texture_decal").change(GAME.updateTextures);
 
         //panorama
@@ -486,6 +553,7 @@ const GAME = {
 
 
         GAME.updateTextures();                  //common to textures and panorama
+
 
         /** mask elements */
         if (MASK_ELEMENTS.length > 0) {
@@ -560,10 +628,245 @@ const GAME = {
         GAME.printMaterialDetails();
         $("#materialtype").change(GAME.printMaterialDetails);
 
+        /** monster */
+        if (INI.USE_MONSTERS) {
+            for (const monsterType in MONSTER_TYPE) {
+                if (MONSTER_TYPE[monsterType].attack) {
+                    $("#monster_type").append(`<option value="${monsterType}">${monsterType} A: ${MONSTER_TYPE[monsterType].attack || 0} D: ${MONSTER_TYPE[monsterType].defense || 0} H: ${MONSTER_TYPE[monsterType].health || 0} M: ${MONSTER_TYPE[monsterType].magic || 0} XP: ${MONSTER_TYPE[monsterType].xp || 0}</option>`);
+                } else {
+                    $("#monster_type").append(`<option value="${monsterType}">${monsterType}</option>`);
+                }
+
+            }
+        }
+
+        /** gates */
+        if (typeof GATE_TYPES !== "undefined" && GATE_TYPES.length > 0) {
+            for (const gateType of GATE_TYPES) {
+                $("#gatetype").append(`<option value="${gateType}">${gateType}</option>`);
+            }
+            ENGINE.drawToId("gatecanvas", 0, 0, ENGINE.resizeCanvas(SPRITE[`DungeonDoor_${$("#gatetype")[0].value}`], INI.CANVAS_RESOLUTION));
+
+            $("#gatetype").change(function () {
+                ENGINE.drawToId("gatecanvas", 0, 0, ENGINE.resizeCanvas(SPRITE[`DungeonDoor_${$("#gatetype")[0].value}`], INI.CANVAS_RESOLUTION));
+            });
+        }
+
+        /** keys */
+        if (typeof GATE_TYPES !== "undefined" && KEY_TYPES.length > 0) {
+            for (const keyType of KEY_TYPES) {
+                $("#key_type").append(`<option value="${keyType}" style="background-color: ${keyType.toLowerCase()}">${keyType}</option>`);
+            }
+            $("#key_type").change(function () {
+                let selectedOption = $("#key_type").val().toLowerCase();
+
+                ENGINE.drawToId("keycanvas", 0, 0, SPRITE[`${selectedOption.capitalize()}Key`]);
+
+                switch (selectedOption) {
+                    case "emerald":
+                        selectedOption = "#50C878";
+                        break;
+                    case "pearl":
+                        selectedOption = "WhiteSmoke";
+                        break;
+
+                }
+                $("#key_selection").css("background-color", selectedOption);
+
+            });
+            $("#key_type").trigger("change");
+        }
+
+        /** scrolls */
+        if (typeof SCROLL_TYPE !== "undefined" && SCROLL_TYPE.length > 0) {
+            for (const scrollType of SCROLL_TYPE) {
+                $("#scroll_type").append(`<option value="${scrollType}">${scrollType}`);
+            }
+            $("#scroll_type").change(function () {
+                ENGINE.drawToId("scrollcanvas", 0, 0, SPRITE[`SCR_${$("#scroll_type")[0].value}`]);
+            });
+            $("#scroll_type").trigger("change");
+        }
+
+        /** gold */
+        if (typeof GOLD_ITEM_TYPE !== "undefined" && Object.keys(GOLD_ITEM_TYPE).length > 0) {
+            for (const goldType in GOLD_ITEM_TYPE) {
+                $("#gold_type").append(`<option value="${goldType}">${goldType}</option>`);
+            }
+            $("#gold_type").change(function () {
+                const sprite = $("#gold_type")[0].value;
+                ENGINE.drawToId("gold_canvas", 0, 0, SPRITE[sprite]);
+            });
+            $("#gold_type").trigger("change");
+        }
+
+        //skills
+        if (typeof SKILL_ITEM_TYPE !== "undefined" && Object.keys(SKILL_ITEM_TYPE).length > 0) {
+            for (const skillType in SKILL_ITEM_TYPE) {
+                $("#skill_type").append(`<option value="${skillType}">${skillType}</option>`);
+            }
+            $("#skill_type").change(function () {
+                const skill_type = $("#skill_type")[0].value;
+                ENGINE.drawToId("skillcanvas", 0, 0, ENGINE.conditionalResize(SPRITE[SKILL_ITEM_TYPE[skill_type].inventorySprite], INI.CANVAS_RESOLUTION));
+            });
+            $("#skill_type").trigger("change");
+        }
+
+        //containers
+        if (typeof CONTAINER_ITEM_TYPE !== "undefined" && Object.keys(CONTAINER_ITEM_TYPE).length > 0) {
+            for (const containerType in CONTAINER_ITEM_TYPE) {
+                $("#container_type").append(`<option value="${containerType}">${containerType}</option>`);
+            }
+            $("#container_type").change(function () {
+                const container_type = $("#container_type")[0].value;
+                ENGINE.drawToId("containercanvas", 0, 0, ENGINE.conditionalResize(TEXTURE[CONTAINER_ITEM_TYPE[container_type].texture], INI.CANVAS_RESOLUTION));
+            });
+            $("#container_type").trigger("change");
+        }
+
+        //container content
+        if (typeof CONTAINER_CONTENT_LIST !== "undefined" && CONTAINER_CONTENT_LIST.length > 0) {
+            for (const contentType of CONTAINER_CONTENT_LIST) {
+                $("#content_type").append(`<option value="${contentType}">${contentType}</option>`);
+            }
+            $("#content_type").change(function () {
+                const sprite = $("#content_type")[0].value.split(".")[1];
+                ENGINE.drawToId("container_item_canvas", 0, 0, SPRITE[sprite]);
+            });
+            $("#content_type").trigger("change");
+        }
+
+        //shrines
+        if (typeof SHRINE_TYPE !== "undefined" && Object.keys(SHRINE_TYPE).length > 0) {
+            for (const shrineType in SHRINE_TYPE) {
+                $("#shrine_type").append(`<option value="${shrineType}">${shrineType}</option>`);
+            }
+            $("#shrine_type").change(function () {
+                const entity = $("#shrine_type")[0].value;
+                ENGINE.drawToId("shrinecanvas", 0, 0, ENGINE.conditionalResize(SPRITE[SHRINE_TYPE[entity].sprite], INI.CANVAS_RESOLUTION));
+            });
+            $("#shrine_type").trigger("change");
+        }
+
+        if (typeof INTERACTION_SHRINE !== "undefined" && Object.keys(INTERACTION_SHRINE).length > 0) {
+            for (const item_shrine_type in INTERACTION_SHRINE) {
+                $("#item_shrine_type").append(`<option value="${item_shrine_type}">${item_shrine_type}</option>`);
+            }
+            $("#item_shrine_type").change(function () {
+                const entity = $("#item_shrine_type")[0].value;
+                ENGINE.drawToId("trainercanvas", 0, 0, ENGINE.conditionalResize(SPRITE[INTERACTION_SHRINE[entity].sprite], INI.CANVAS_RESOLUTION));
+            });
+            $("#item_shrine_type").trigger("change");
+        }
+
+        if (typeof ORACLE_TYPE !== "undefined" && Object.keys(ORACLE_TYPE).length > 0) {
+            for (const oracleType in ORACLE_TYPE) {
+                $("#oracle_type").append(`<option value="${oracleType}">${oracleType}</option>`);
+            }
+            $("#oracle_type").change(function () {
+                const entity = $("#oracle_type")[0].value;
+                ENGINE.drawToId("oraclecanvas", 0, 0, ENGINE.conditionalResize(SPRITE[ORACLE_TYPE[entity].sprite], INI.CANVAS_RESOLUTION));
+            });
+            $("#oracle_type").trigger("change");
+        }
+
+        //fires
+        if (typeof FIRE_TYPES !== "undefined" && Object.keys(FIRE_TYPES).length > 0) {
+            for (const fire in FIRE_TYPES) {
+                $("#fire_type").append(`<option value="${fire}">${fire}</option>`);
+            }
+        }
+
+        //triggers
+        if (typeof TRIGGER_DECALS !== "undefined" && TRIGGER_DECALS.length > 0) {
+            for (const triggerDecal of TRIGGER_DECALS) {
+                $("#trigger_decal").append(`<option value="${triggerDecal}">${triggerDecal}</option>`);
+            }
+            $("#trigger_decal").change(function () {
+                ENGINE.drawToId("triggercanvas", 0, 0, SPRITE[$("#trigger_decal")[0].value]);
+            });
+            $("#trigger_decal").trigger("change");
+        }
+        if (typeof TRIGGER_ACTIONS !== "undefined" && TRIGGER_ACTIONS.length > 0) {
+            for (const action of TRIGGER_ACTIONS) {
+                $("#trigger_actions").append(`<option value="${action}">${action}</option>`);
+            }
+        }
+
+        //interaction entity
+        if (typeof INTERACTION_ENTITY !== "undefined" && Object.keys(INTERACTION_ENTITY).length > 0) {
+            for (const entity in INTERACTION_ENTITY) {
+                $("#entity_type").append(`<option value="${entity}">${entity}</option>`);
+            }
+            $("#entity_type").change(function () {
+                const entity = $("#entity_type")[0].value;
+                ENGINE.drawToId("entitycanvas", 0, 0, ENGINE.conditionalResize(SPRITE[INTERACTION_ENTITY[entity].sprite], INI.CANVAS_RESOLUTION));
+            });
+            $("#entity_type").trigger("change");
+
+        }
+
+        //interaction objects
+        if (typeof INTERACTION_OBJECT !== "undefined" && Object.keys(INTERACTION_OBJECT).length > 0) {
+            for (const obj in INTERACTION_OBJECT) {
+                $("#interaction_object_type").append(`<option value="${obj}">${obj}</option>`);
+            }
+
+            $("#interaction_object_type").change(function () {
+                ENGINE.drawToId("object_canvas", 0, 0, SPRITE[INTERACTION_OBJECT[$("#interaction_object_type")[0].value].inventorySprite]);
+            });
+            $("#interaction_object_type").trigger("change");
+        }
+
+        //movables
+        if (typeof MOVABLE_INTERACTION_OBJECT !== "undefined" && Object.keys(MOVABLE_INTERACTION_OBJECT).length > 0) {
+            for (const obj in MOVABLE_INTERACTION_OBJECT) {
+                $("#movable_type").append(`<option value="${obj}">${obj}</option>`);
+            }
+
+            $("#movable_type").change(function () {
+                ENGINE.drawToId("movable_canvas", 0, 0, SPRITE[MOVABLE_INTERACTION_OBJECT[$("#movable_type")[0].value].inventorySprite]);
+            });
+            $("#movable_type").trigger("change");
+        }
+
+        if (typeof INTERACTOR !== "undefined" && Object.keys(INTERACTOR).length > 0) {
+            for (const obj in INTERACTOR) {
+                $("#interactor_type").append(`<option value="${obj}">${obj}</option>`);
+            }
+        }
+
+        //traps
+        if (typeof TRAP_ACTION_LIST !== "undefined" && Object.keys(TRAP_ACTION_LIST).length > 0) {
+            for (const action of TRAP_ACTION_LIST) {
+                $("#trap_type").append(`<option value="${action}">${action}</option>`);
+            }
+            $("#trap_type").change(() => {
+                $("#trap_entity").html("");
+                for (const val of TRAP_ACTIONS[$("#trap_type")[0].value]) {
+                    $("#trap_entity").append(`<option value="${val}">${val}</option>`);
+                }
+            });
+            $("#trap_type").trigger("change");
+        }
+
+        //lairs
+        if (typeof TRIGGER_LAIR_DECALSDECALS !== "undefined" && LAIR_DECALS.length > 0) {
+            for (const lair of LAIR_DECALS) {
+                $("#lair_type").append(`<option value="${lair}">${lair}</option>`);
+            }
+
+            $("#lair_type").change(function () {
+                ENGINE.drawToId("laircanvas", 0, 0, ENGINE.conditionalResize(SPRITE[$("#lair_type")[0].value], INI.CANVAS_RESOLUTION));
+            });
+            $("#lair_type").trigger("change");
+        }
+
         /** randoms */
 
         $("#randwall").click(GAME.randomTexture.bind(null, TEXTURE_LIST, "#walltexture", "wallcanvas"));
         $("#randfloor").click(GAME.randomTexture.bind(null, TEXTURE_LIST, "#floortexture", "floorcanvas"));
+        $("#randceil").click(GAME.randomTexture.bind(null, TEXTURE_LIST, "#ceiltexture", "ceilcanvas"));
 
         $("#randFrontPanorama").click(GAME.randomTexture.bind(null, PANORAMA_DECALS, "#frontPanorama", "frontPanoramaCanvas"));
         $("#randLeftPanorama").click(GAME.randomTexture.bind(null, PANORAMA_DECALS, "#leftPanorama", "leftPanoramaCanvas"));
@@ -575,6 +878,14 @@ const GAME = {
         $("#randpic").click(GAME.randomPic);
         $("#randcrest").click(GAME.randomCrest);
         $("#randlight").click(GAME.randomLight);
+
+        /** clicks */
+
+        $("#clear_list").click(GAME.clearMonsterList);
+        $("#add_monster_list").click(GAME.addToMonsterList);
+        $('#keepHints, #keepHintsAbove').on('click', function () {
+            if (this.checked) $('#keepHints, #keepHintsAbove').not(this).prop('checked', false);
+        });
 
         /** search inputs */
         const filterOptions = (selectId, searchId) => {
@@ -590,6 +901,8 @@ const GAME = {
         $('#searchDecals').on('keyup', () => filterOptions("#crest_decal", "#searchDecals"));
         $('#searchPics').on('keyup', () => filterOptions("#picture_decal", "#searchPics"));
         $('#searchLights').on('keyup', () => filterOptions("#light_decal", "#searchLights"));
+        $('#searchEntity').on('keyup', () => filterOptions("#entity_type", "#searchEntity"));
+        $('#searchMonster').on('keyup', () => filterOptions("#monster_type", "#searchMonster"));
         $('#searchWall').on('keyup', () => filterOptions("#walltexture", "#searchWall"));
         $('#searchFloor').on('keyup', () => filterOptions("#floortexture", "#searchFloor"));
         $('#searchFrontPanorama').on('keyup', () => filterOptions("#frontPanorama", "#searchFrontPanorama"));
@@ -600,11 +913,19 @@ const GAME = {
         $('#searchSkyPanorama').on('keyup', () => filterOptions("#skyPanorama", "#searchSkyPanorama"));
         $('#searchMasks').on('keyup', () => filterOptions("#mask_element", "#searchMasks"));
         $('#searchMasksDecals').on('keyup', () => filterOptions("#mask_decal", "#searchMasksDecals"));
+        $('#searchIO').on('keyup', () => filterOptions("#interaction_object_type", "#searchIO"));
+        $('#searchOracle').on('keyup', () => filterOptions("#oracle_type", "#searchOracle"));
+        $('#searchTrainer').on('keyup', () => filterOptions("#item_shrine_type", "#searchTrainer"));
+        $('#searchShrines').on('keyup', () => filterOptions("#shrine_type", "#searchShrines"));
+        $('#searchMIE').on('keyup', () => filterOptions("#movable_type", "#searchMIE"));
+        $('#searchInteractors').on('keyup', () => filterOptions("#interactor_type", "#searchInteractors"));
 
         /** shortcuts */
 
         $(document).keydown((event) => {
             switch (event.key) {
+                case 'F7':
+                    GAME.random_lair();
                 case 'F8':
                     GAME.randomPic();
                     GAME.randomCrest();
@@ -668,15 +989,33 @@ const GAME = {
         $("#crest_decal").val(pic).change();
         ENGINE.drawToId("crestcanvas", 0, 0, ENGINE.conditionalResize(SPRITE[$("#crest_decal")[0].value], INI.CANVAS_RESOLUTION));
     },
+    random_lair() {
+        const lair = LAIR_DECALS.chooseRandom();
+        $("#lair_type").val(lair).change();
+    },
+    randomContainer() {
+        const searchContainer = $('#searchContainers').val().toLowerCase();
+        const filtered_containers = CONTAINER_LIST.filter(cont => cont.toLowerCase().includes(searchContainer));
+        const container = filtered_containers.chooseRandom();
+        if (!container) return;
+        $("#container_type").val(container).change();
+    },
+    randomTrigger() {
+        const pic = TRIGGER_DECALS.chooseRandom();
+        $("#trigger_decal").val(pic).change();
+        ENGINE.drawToId("triggercanvas", 0, 0, SPRITE[$("#trigger_decal")[0].value]);
+    },
     updateTextures(restart = true) {
         //if (!INI.USE_TEXTURES) return;
 
         const wallTexture = TEXTURE[$("#walltexture")[0].value];
         const floorTexture = TEXTURE[$("#floortexture")[0].value];
+        const ceilTexture = TEXTURE[$("#ceiltexture")[0].value];
         const textureTexture = TEXTURE[$("#texture_decal")[0].value];
 
         ENGINE.resizeAndFill(LAYER.wallcanvas, wallTexture, INI.TEXTURE_RESOLUTION);
         ENGINE.resizeAndFill(LAYER.floorcanvas, floorTexture, INI.TEXTURE_RESOLUTION);
+        ENGINE.resizeAndFill(LAYER.ceilcanvas, floorTexture, INI.TEXTURE_RESOLUTION);
         ENGINE.resizeAndFill(LAYER.texturecanvas, textureTexture, INI.CANVAS_RESOLUTION);
 
         const frontPanorama = TEXTURE[$("#frontPanorama")[0].value];
@@ -696,6 +1035,7 @@ const GAME = {
         const ids = [
             "wall_resolution",
             "floor_resolution",
+            "ceil_resolution",
             "frontPanorama_resolution",
             "leftPanorama_resolution",
             "rightPanorama_resolution",
@@ -707,6 +1047,7 @@ const GAME = {
         const textures = [
             wallTexture,
             floorTexture,
+            ceilTexture,
             frontPanorama,
             leftPanorama,
             rightPanorama,
@@ -779,6 +1120,36 @@ const GAME = {
 
         switch (radio) {
 
+            case "monster":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let monsterValue = $("#monster_type")[0].value;
+                        $MAP.map.monsters.push(Array(gridIndex, monsterValue));
+                        break;
+                    default:
+                        $("#error_message").html(`Monster placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "WALL8":
+            case "WALL6":
+            case "WALL4":
+            case "WALL2":
+                GA.setValue(grid, MAPDICT[radio]);
+                console.log("Staircase element", radio);
+                break;
+
+            case "trapdoor":
+                GA.addTrapDoor(grid);
+                $("#error_message").html("All is fine");
+                break;
+
+            case "blockwall":
+                GA.toBlockWall(grid);
+                $("#error_message").html("All is fine");
+                break;
+
             case 'flip':
                 if (GA.isWall(grid)) {
                     GA.carveDot(grid);
@@ -827,6 +1198,16 @@ const GAME = {
                 } else {
                     $("#error_message").html("You can't make door in the wall!");
                 }
+                break;
+
+            case "trapdoor":
+                GA.addTrapDoor(grid);
+                $("#error_message").html("All is fine");
+                break;
+
+            case "blockwall":
+                GA.toBlockWall(grid);
+                $("#error_message").html("All is fine");
                 break;
 
             case "reserve":
@@ -954,7 +1335,6 @@ const GAME = {
                         const image = $(`#maskcanvas`)[0].getContext("2d").canvas;
                         const flip = parseInt($("#mask_flip")[0].value, 10);
                         $MAP.mask_moves.push([gridIndex, rotation, elIndex, flip]);
-                        $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
                         break;
                     default:
                         $("#error_message").html(`Mask not supported on value: ${currentValue}`);
@@ -974,7 +1354,6 @@ const GAME = {
                 break;
 
             case "maskdecalpaint":
-                console.warn("HERE");
                 switch (currentValue) {
                     case MAPDICT.MASK:
                     case MAPDICT.WALL:
@@ -985,7 +1364,6 @@ const GAME = {
                         const image = $(`#maskdecalcanvas`)[0].getContext("2d").canvas;
                         const flip = parseInt($("#mask_flip")[0].value, 10);
                         $MAP.mask_decal_moves.push([gridIndex, rotation, elIndex, flip]);
-                        $("#mask_decal_moves_exp").html(JSON.stringify($MAP.mask_decal_moves));
                         break;
                     default:
                         $("#error_message").html(`Mask not supported on value: ${currentValue}`);
@@ -1003,10 +1381,388 @@ const GAME = {
                 }
                 $("#mask_decal_moves_exp").html(JSON.stringify($MAP.mask_decal_moves));
                 break;
+
+            case "gate":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        break;
+                    default:
+                        $("#error_message").html(`Gate placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                //
+                dirs = GA.getDirections(grid, MAPDICT.EMPTY);
+                if (dirs.length > 1) {
+                    alert(`bad gate position, posible exits ${dirs.length}`);
+                    break;
+                }
+                dirIndex = dirs[0].toInt();
+                $MAP.map.gates.push(Array(gridIndex, dirIndex, $("#sgateID")[0].value, $("#tgateID")[0].value, $("#gatetype")[0].value));
+                break;
+
+            case "lair":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        break;
+                    default:
+                        $("#error_message").html(`Lair placement not supported on value: ${currentValue}`);
+                        return;
+                }
+
+                dirs = GA.getDirections(grid, MAPDICT.EMPTY);
+                if (dirs.length > 1) {
+                    alert(`bad lair position, posible exits ${dirs.length}`);
+                    break;
+                }
+                dirIndex = dirs[0].toInt();
+                $MAP.map.lairs.push(Array(gridIndex, dirIndex, $("#lair_type")[0].value));
+
+                console.warn("***** LAIR *****");
+                break;
+
+            case "key":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let keyValue = $("#key_type")[0].value;
+                        let keyTypeIndex = KEY_TYPES.indexOf(keyValue);
+                        $MAP.map.keys.push(Array(gridIndex, keyTypeIndex));
+                        break;
+                    default:
+                        $("#error_message").html(`Key placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                $("#error_message").html("All is fine");
+                break;
+
+            case "scroll":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let scrollValue = $("#scroll_type")[0].value;
+                        let scrollTypeIndex = SCROLL_TYPE.indexOf(scrollValue);
+                        $MAP.map.scrolls.push(Array(gridIndex, scrollTypeIndex));
+                        break;
+                    default:
+                        $("#error_message").html(`Scroll placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "potion":
+
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let potionValue = $("#potion_type")[0].value;
+                        let potionTypeIndex = POTION_TYPES.indexOf(potionValue);
+                        $MAP.map.potions.push(Array(gridIndex, potionTypeIndex));
+                        break;
+                    default:
+                        $("#error_message").html(`Potion placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case 'gold':
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let goldValue = $("#gold_type")[0].value;
+                        $MAP.map.gold.push(Array(gridIndex, goldValue));
+                        break;
+                    default:
+                        $("#error_message").html(`Gold placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case 'skill':
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let skillValue = $("#skill_type")[0].value;
+                        $MAP.map.skills.push(Array(gridIndex, skillValue));
+                        console.log("$MAP.map.skill", $MAP.map.skills);
+                        break;
+                    default:
+                        $("#error_message").html(`Gold placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case 'container':
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        let containerValue = $("#container_type")[0].value;
+                        let itemValue = $("#content_type")[0].value;
+                        let orientationType = $("input[name=orientation]:checked").val();
+                        if (orientationType === "FIXED") {
+                            dir = GAME.getSelectedDir();
+                            dirIndex = dir.toInt();
+                        } else dirIndex = null;
+                        $MAP.map.containers.push(Array(gridIndex, containerValue, itemValue, dirIndex));
+                        break;
+                    default:
+                        $("#error_message").html(`Container placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "shrine":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        break;
+                    default:
+                        $("#error_message").html(`Shrine placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                dirs = GA.getDirections(grid, MAPDICT.EMPTY);
+                if (dirs.length > 1) {
+                    alert(`Bad shrine position, posible exits ${dirs.length}`);
+                    break;
+                }
+                dirIndex = dirs[0].toInt();
+                $MAP.map.shrines.push(Array(gridIndex, dirIndex, $("#shrine_type")[0].value));
+                break;
+
+            case "item_shrine":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        break;
+                    default:
+                        $("#error_message").html(`Item Shrine placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                dirs = GA.getDirections(grid, MAPDICT.EMPTY);
+                if (dirs.length > 1) {
+                    alert(`Bad shrine position, posible exits ${dirs.length}`);
+                    break;
+                }
+                dirIndex = dirs[0].toInt();
+                $MAP.map.trainers.push(Array(gridIndex, dirIndex, $("#item_shrine_type")[0].value));
+                break;
+
+            case "oracle":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        break;
+                    default:
+                        $("#error_message").html(`Oracle placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                console.log("adding oracle on", grid);
+                dirs = GA.getDirections(grid, MAPDICT.EMPTY);
+                console.log("dirs", dirs);
+                if (dirs.length > 1) {
+                    alert(`Bad oracle position, posible exits ${dirs.length}`);
+                    break;
+                }
+                dirIndex = dirs[0].toInt();
+                $MAP.map.oracles.push(Array(gridIndex, dirIndex, $("#oracle_type")[0].value));
+                break;
+
+            case "trigger":
+
+                if (GAME.stack.previousRadio === radio) {
+                    GAME.stack.triggerCount++;
+                } else GAME.stack.triggerCount = 1;
+
+                if (GAME.stack.triggerCount > 2) {
+                    GAME.stack.triggerCount = 1;
+                    GAME.stack.elementBuilt = null;
+                }
+
+                switch (GAME.stack.triggerCount) {
+                    case 1:
+                        switch (currentValue) {
+                            case MAPDICT.EMPTY:
+                                dir = NOWAY;
+                                break;
+                            case MAPDICT.WALL:
+                                dir = GAME.getSelectedDir();
+                                if (dir.same(NOWAY)) {
+                                    GAME.stack.triggerCount = 0;
+                                    $("#error_message").html("Wall trigger decal needs direction");
+                                    return;
+                                }
+                                break;
+
+                            default:
+                                $("#error_message").html(`Trigger decal placement not supported on value: ${currentValue}`);
+                                return;
+                        }
+                        GAME.stack.elementBuilt = Array(
+                            gridIndex,
+                            dir.toInt(),
+                            $("#trigger_decal")[0].value,
+                            TRIGGER_ACTIONS.indexOf($("#trigger_actions")[0].value)
+                        );
+                        $("#error_message").html(`Trigger part 1 OK`);
+                        break;
+
+                    case 2:
+                        const expectedValue = MAPDICT[$("#trigger_actions")[0].value.split("->")[0]];
+                        if (currentValue !== expectedValue) {
+                            $("#error_message").html(`Trigger target doesn't match selected grid value!!`);
+                            GAME.stack.triggerCount--;
+                            return;
+                        }
+
+                        //success
+                        GAME.stack.elementBuilt.push(gridIndex);
+                        console.log("GAME.stack.elementBuilt", GAME.stack.elementBuilt, "GAME.stack.triggerCount", GAME.stack.triggerCount);
+                        $MAP.map.triggers.push(GAME.stack.elementBuilt.clone());
+                        GAME.stack.elementBuilt = null;
+                        $("#error_message").html(`Trigger part 2 OK`);
+                        break;
+                }
+
+                break;
+
+            case "entity":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        dir = GAME.getSelectedDir();
+                        if (dir.same(NOWAY)) {
+                            $("#error_message").html(`Entity decal placement requires face/direction`);
+                            return;
+                        }
+                        $MAP.map.entities.push(Array(gridIndex, dir.toInt(), $("#entity_type")[0].value));
+                        console.log($MAP.map.entities);
+                        break;
+
+                    default:
+                        $("#error_message").html(`Entity decal placement not supported on value: ${currentValue}`);
+                        return;
+                }
+
+                break;
+
+            case "interactor":
+                switch (currentValue) {
+                    case MAPDICT.WALL:
+                        dir = GAME.getSelectedDir();
+                        if (dir.same(NOWAY)) {
+                            $("#error_message").html(`Interactor decal placement requires face/direction`);
+                            return;
+                        }
+                        $MAP.map.interactors.push(Array(gridIndex, dir.toInt(), $("#interactor_type")[0].value));
+                        console.log($MAP.map.interactors);
+                        break;
+
+                    default:
+                        $("#error_message").html(`Interactor decal placement not supported on value: ${currentValue}`);
+                        return;
+                }
+
+                break;
+
+            case "object":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        $MAP.map.objects.push(Array(gridIndex, $("#interaction_object_type")[0].value));
+                        break;
+                    default:
+                        $("#error_message").html(`interactive OBJECT placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "movable":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        $MAP.map.movables.push(Array(gridIndex, $("#movable_type")[0].value));
+                        break;
+                    default:
+                        $("#error_message").html(`MOVABLE placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                break;
+
+            case "trap":
+
+                if (GAME.stack.previousRadio === radio) {
+                    GAME.stack.trapCount++;
+                } else GAME.stack.trapCount = 1;
+
+                if (GAME.stack.trapCount > 2) {
+                    GAME.stack.trapCount = 1;
+                    GAME.stack.elementBuilt = null;
+                }
+
+                switch (GAME.stack.trapCount) {
+                    case 1:
+                        switch (currentValue) {
+                            case MAPDICT.EMPTY:
+                                dir = NOWAY;
+                                break;
+                            case MAPDICT.WALL:
+                                dir = GAME.getSelectedDir();
+                                if (dir.same(NOWAY)) {
+                                    GAME.stack.trapCount = 0;
+                                    $("#error_message").html("Wall trap decal needs direction");
+                                    return;
+                                }
+                                break;
+
+                            default:
+                                $("#error_message").html(`Trap decal placement not supported on value: ${currentValue}`);
+                                return;
+                        }
+                        GAME.stack.elementBuilt = Array(
+                            gridIndex,
+                            dir.toInt(),
+                            $("#trigger_decal")[0].value,
+                            TRAP_ACTION_LIST.indexOf($("#trap_type")[0].value),
+                            $("#trap_entity")[0].value
+                        );
+                        $("#error_message").html(`Trap part 1 OK`);
+                        break;
+
+                    case 2:
+                        const expectedValue = MAPDICT.EMPTY;
+                        if (currentValue !== expectedValue) {
+                            $("#error_message").html(`Trap target doesn't match selected grid value!!`);
+                            GAME.stack.triggerCount--;
+                            return;
+                        }
+
+                        //success
+                        GAME.stack.elementBuilt.push(gridIndex);
+                        //console.log("GAME.stack.elementBuilt", GAME.stack.elementBuilt, "GAME.stack.trapCount", GAME.stack.trapCount);
+                        $MAP.map.traps.push(GAME.stack.elementBuilt.clone());
+                        GAME.stack.elementBuilt = null;
+                        $("#error_message").html(`Trap part 2 OK`);
+                        break;
+                }
+
+                break;
+
+            case "fire":
+                switch (currentValue) {
+                    case MAPDICT.EMPTY:
+                        break;
+                    default:
+                        $("#error_message").html(`Fire placement not supported on value: ${currentValue}`);
+                        return;
+                }
+                dir = GAME.getSelectedDir();
+                $MAP.map.fires.push(Array(gridIndex, dir.toInt(), $("#fire_type")[0].value));
+                console.info("FIRE", Array(gridIndex, dir.toInt(), $("#fire_type")[0].value));
+                break;
+
         }
 
         GAME.stack.previousRadio = radio;
         GAME.render();
+
+        if ($("input[name='keepHints']")[0].checked) GAME.hintDown();
+        if ($("input[name='keepHintsAbove']")[0].checked) GAME.hintUp();
+    },
+    stack: {
+        previousRadio: null,
+        triggerCount: 0,
+        fillCount: 0,
+        trapCount: 0,
+        elementBuilt: null,
+        startGrid: null,
+        endGrid: null,
     },
     downloadMask() {
         const RoomID = $("#roomid")[0].value;
@@ -1062,7 +1818,7 @@ const GAME = {
     },
     render(refresh3D = true) {
         const radio = $("#selector input[name=renderer]:checked").val();
-
+        const dimension = $("#dimensions input[name=dimensions]:checked").val();
         switch (radio) {
             case "block":
                 GAME.blockGrid3D();
@@ -1188,11 +1944,24 @@ const GAME = {
             OK = confirm("Sure?");
         }
         if (OK) {
+            const dimension = $("#dimensions input[name=dimensions]:checked").val();
             $MAP.width = parseInt($("#horizontalGrid").val(), 10);
             $MAP.height = parseInt($("#verticalGrid").val(), 10);
-            $MAP.depth = 1;
-            console.info("INIT", $MAP.width, $MAP.height);
-            $MAP.map = FREE_MAP3D.create($MAP.width, $MAP.height, 1, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
+            $MAP.depth = parseInt($("#depthGrid").val(), 10) || 1;
+            console.chapter("INIT", $MAP.width, $MAP.height, $MAP.depth);
+
+            //$MAP.map = FREE_MAP3D.create($MAP.width, $MAP.height, 1, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
+
+            switch (dimension) {
+                case "2D":
+                    $MAP.map = FREE_MAP.create($MAP.width, $MAP.height, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
+                    break;
+                case "3D":
+                    $MAP.map = FREE_MAP3D.create($MAP.width, $MAP.height, $MAP.depth, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
+                    GAME.setFloorButtons();
+                    break;
+            };
+
             $MAP.map.GA.fill(MAPDICT.EMPTY);
             $MAP.init();
 
@@ -1212,27 +1981,53 @@ const GAME = {
         console.log("GAME.blockGrid3D -> GAME.floor", GAME.floor);
         ENGINE.BLOCKGRID3D.draw($MAP.map, GAME.floor, corr);
     },
+    swapGates() {
+        const temp = $("#sgateID")[0].value;
+        $("#sgateID").val($("#tgateID")[0].value);
+        $("#tgateID").val(temp);
+    },
     export() {
+        const dimension = $("#dimensions input[name=dimensions]:checked").val();
         let rle = $MAP.map.GA.exportMap();
-        console.log("Export", rle);
+        console.log("Export", rle, "dimension", dimension);
         let Export;
 
-        Export = { width: $MAP.width, height: $MAP.height, depth: 1, map: rle };
+        if (dimension === "2D") {
+            Export = { width: $MAP.width, height: $MAP.height, map: rle };
+        } else Export = { width: $MAP.width, height: $MAP.height, depth: $MAP.depth, map: rle };
+
 
         let RoomID = $("#roomid")[0].value;
         let RoomName = $("#roomname")[0].value;
+        let MaxSpawned = $("#max_spawned")[0].value || -1;
+        let KillCountdown = $("#kill_countdown")[0].value || -1;
+        let SpawnStop = $("#killsRequiredToStopSpawning")[0].value || -1;
+        let SpawnDelay = $("#spawn_delay")[0].value || -1;
+        let SG = parseInt($("#checkpoint")[0].value, 10);
 
 
         let roomExport = `${RoomID} : {
 name: "${RoomName}",
-data: '${JSON.stringify(Export)}',
-wall: "${$("#walltexture")[0].value}",
-`;
+data: '${JSON.stringify(Export)}',`;
+
+        if (INI.USE_SAVEGAME) {
+            roomExport += `
+sg: ${SG},`
+        }
+
+        if (INI.USE_MONSTERS) {
+            roomExport += `
+maxSpawned: ${MaxSpawned},
+killCountdown: ${KillCountdown},
+killsRequiredToStopSpawning: ${SpawnStop},
+spawnDelay: ${SpawnDelay},`
+        }
 
         if (INI.USE_TEXTURES) {
-            `
+            roomExport += `
 wall: "${$("#walltexture")[0].value}",
 floor: "${$("#floortexture")[0].value}",
+ceil: "${$("#ceiltexture")[0].value}",
 `;
         }
 
@@ -1246,6 +2041,7 @@ archPanorama: "${$("#archPanorama")[0].value}",
 skyPanorama: "${$("#skyPanorama")[0].value}",
 `
         }
+
         for (let desc of $MAP.properties) {
             if ($MAP.map[desc].length > 0) {
                 roomExport += `${desc}: '${JSON.stringify($MAP.map[desc])}',\n`;
@@ -1264,13 +2060,14 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             roomExport += `maskdecals: '${JSON.stringify($MAP.mask_decal_moves)}',\n`;
         }
 
+        //end
         roomExport += `}`;
-
         $("#exp").val(roomExport);
     },
     import() {
         console.clear();
-        const dimension = 1;
+        const dimension = $("#dimensions input[name=dimensions]:checked").val();
+        console.info("dimension", dimension);
         $MAP.map.textureMap = null;
         const ImportText = $("#exp").val();
         console.info("ImportText", ImportText);
@@ -1280,41 +2077,65 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         const roomName = ImportText.extractGroup(new RegExp(`name:\\s"(.*)"`));
         $("#roomname").val(roomName);
 
+        console.log(roomId, roomName);
+
         const SG = ImportText.extractGroup(/sg:\s(\d{1})/);
         $('#checkpoint').val(SG).trigger('change');
+
+        const MaxSpawned = ImportText.extractGroup(/maxSpawned:\s(\d*)/);
+        $("#max_spawned").val(MaxSpawned);
+        const KillCountdown = ImportText.extractGroup(/killCountdown:\s(\d*)/);
+        $("#kill_countdown").val(KillCountdown);
+        const SpawnStop = ImportText.extractGroup(/killsRequiredToStopSpawning:\s(\d*)/);
+        $("#killsRequiredToStopSpawning").val(SpawnStop);
+        const SpawnDelay = ImportText.extractGroup(/spawnDelay:\s(\d*)/);
+        $("#spawn_delay").val(SpawnDelay);
 
         const Textures = ["wall", "floor", "ceil"];
         for (const prop of Textures) {
             const pattern = new RegExp(`${prop}:\\s"(.*)"`);
             $(`#${prop}texture`).val(ImportText.extractGroup(pattern));
+            console.info(prop, ImportText.extractGroup(pattern));
         }
 
-        const Panoramas = ["frontPanorama", "leftPanorama", "rightPanorama", "backPanorama", "archPanorama", "skyPanorama"];
-        for (const prop of Panoramas) {
-            const pattern = new RegExp(`${prop}:\\s"(.*)"`);
-            $(`#${prop}`).val(ImportText.extractGroup(pattern));
+        if (INI.USE_PANORAMA) {
+            const Panoramas = ["frontPanorama", "leftPanorama", "rightPanorama", "backPanorama", "archPanorama", "skyPanorama"];
+            for (const prop of Panoramas) {
+                const pattern = new RegExp(`${prop}:\\s"(.*)"`);
+                $(`#${prop}`).val(ImportText.extractGroup(pattern));
+            }
         }
 
-        console.log("Import", Import);
-        $MAP.map = FREE_MAP3D.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+        console.log("Import data", Import);
+
+        if (dimension === "2D") {
+            $MAP.map = FREE_MAP.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+        } else $MAP.map = FREE_MAP3D.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+
         $MAP.init();
         WebGL.init_required_IAM($MAP.map, HERO);
         if (INI.USE_TEXTURES) GAME.updateTextures(false);
 
         for (const prop of [...$MAP.properties, ...$MAP.lists]) {
-            const pattern = new RegExp(`${prop}:\\s'(.*)'`);
+            const pattern = new RegExp(`\\b${prop}:\\s'(.*)'`);
             let value = ImportText.extractGroup(pattern);
-            $MAP.map[prop] = JSON.parse(value) || [];
+            console.info(prop, value);
+            //$MAP.map[prop] = JSON.parse(value) || [];
+            $MAP.map[prop] = value ? (JSON.parse(value) || []) : [];
         }
+
+        $("#monster_list").val($MAP.map.monsterList.join(","));
 
         GAME.setStartPositionFromStart($MAP.map);
         $MAP.width = Import.width;
         $MAP.height = Import.height;
-        $MAP.depth = 1;
+        $MAP.depth = Import.depth || 1;
         $("#horizontalGrid").val(Import.width);
         $("#verticalGrid").val(Import.height);
+        $("#depthGrid").val($MAP.depth);
         $("#horizontalGrid").trigger("change");
         $("#verticalGrid").trigger("change");
+        $("#depthGrid").trigger("change");
 
         if (INI.USE_TERRAIN) {
             const terrain = ImportText.extractGroup(/terrain\:\s?\'(.*)\'/);
@@ -1328,16 +2149,33 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             $MAP.mask_moves = JSON.parse(masks);
             const maskdecals = ImportText.extractGroup(/maskdecals:\s\'(.*)\'/);
             $MAP.mask_decal_moves = JSON.parse(maskdecals);
+            console.info("masks", masks);
+            console.info("maskdecals", maskdecals);
         }
 
         GAME.updateWH();
         ENGINE.resizeBOX("ROOM");
         GAME.resizeGL_window();
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
+        GAME.setFloorButtons();
         $MAP.map.textureMap = $MAP.map.GA.toTextureMap();
         GAME.render();
 
         console.info("IMPORT $MAP.map", $MAP.map);
+    },
+    changeFloor() {
+        GAME.floor = parseInt($("#floors")[0].value, 10);
+        console.log("GAME.changeFloor -> GAME.floor", GAME.floor);
+        GAME.render();
+    },
+    clearMonsterList() {
+        $MAP.map.monsterList = [];
+        $("#monster_list").val("");
+    },
+    addToMonsterList() {
+        const monster = $("#monster_type")[0].value;
+        $MAP.map.monsterList.push(monster);
+        $("#monster_list").val($MAP.map.monsterList.join(","));
     },
     copyToClipboard() {
         ENGINE.copyToClipboard("exp");
@@ -1392,6 +2230,92 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
     textureToMask() {
         ENGINE.applyTextureToMask(TEXTURE[$("#walltexture")[0].value], LAYER.mask, LAYER.paintedmask);
     },
+    arena() {
+        let GA = $MAP.map.GA;
+        GA.sliceFill(GAME.floor * $MAP.map.width * $MAP.map.height, $MAP.map.width * $MAP.map.height, $("#arena_value")[0].value);
+        GA.border(parseInt($("#arenawidth").val(), 10), GAME.floor);
+        $MAP.map.textureMap = $MAP.map.GA.toTextureMap();
+        GAME.render();
+    },
+    maze() {
+        const dimension = $("#dimensions input[name=dimensions]:checked").val();
+        const GA = $MAP.map.GA;
+        const maze = $MAP.map;
+        if (!maze.start[0]) return;
+        let startGrid = GA.indexToGrid(maze.start[0]);
+
+        console.warn("creating maze", startGrid, "maze", maze);
+        if (dimension === "2D") {
+            maze.carveMaze(start);
+        } else {
+            startGrid = Grid3D.toGrid(startGrid);
+            const XY_plane_length = maze.width * maze.height;
+            const start = XY_plane_length * GAME.floor;
+            const end = start + XY_plane_length;
+            const plane_GA_map = maze.GA.map.slice(start, end);
+            const tempMaze = FREE_MAP.create(maze.width, maze.height);
+            tempMaze.GA.importMap(plane_GA_map);
+            tempMaze.carveMaze(startGrid);
+            maze.GA.map.set(tempMaze.GA.map, start);
+        }
+
+        GAME.render();
+    },
+    setFloorButtons() {
+        //floors
+        GAME.floor = 0;
+        $("#floors").html("");
+        const nFloors = $("#depthGrid")[0].value;
+        for (let i = 0; i < nFloors; i++) {
+            $("#floors").append(`<option value="${i}">${i}</option>`);
+        }
+        $("#floors").off("change");
+        $("#floors").change(GAME.changeFloor);
+    },
+    dimensions() {
+        const radio = $("#dimensions input[name=dimensions]:checked").val();
+        console.warn("dimensions", radio);
+
+        switch (radio) {
+            case "2D":
+                $("#depthGridVisibility").hide();
+                $("#floors").hide();
+                break;
+            case "3D":
+                $("#depthGridVisibility").show();
+                $("#floors").show();
+                break;
+        }
+    },
+    hint(floor) {
+        ENGINE.BLOCKGRID3D.drawHint($MAP.map, floor);
+    },
+    hintDown() {
+        if (GAME.floor === 0) return;
+        return GAME.hint(GAME.floor - 1);
+    },
+    hintUp() {
+        if (GAME.floor === $MAP.depth - 1) return;
+        return GAME.hint(GAME.floor + 1);
+    },
+    clearHints() {
+        ENGINE.clearLayer("hint");
+    },
+    addFloor() {
+        if (confirm("Do you really want to add floor above?")) {
+            const GA = $MAP.map.GA;
+            GA.depth++;
+            GA.maxZ++;
+            GA.map = GA.map.extend(GA.width * GA.height, MAPDICT.WALL);
+            $MAP.depth = GA.depth;
+            console.warn("adding floor", $MAP.map.GA, $MAP);
+            $("#depthGrid").val(GA.depth);
+            $("#depthGrid").trigger("change");
+            GAME.setFloorButtons();
+            GAME.render();
+            $("#error_message").html(`Added floor, current depth: ${GA.depth}`);
+        }
+    }
 };
 
 const NOISE_FUNCTION = {
