@@ -7,7 +7,7 @@
 
 /** features to parse MazEditor outputs */
 const MAP_TOOLS = {
-    VERSION: "2.03",
+    VERSION: "3.00",
     CSS: "color: #F9A",
     properties: ['start', 'decals', 'lights', 'gates', 'keys', 'monsters', 'scrolls', 'potions', 'gold', 'skills', 'containers',
         'shrines', 'doors', 'triggers', 'entities', 'objects', 'traps', 'oracles', 'movables', 'trainers', 'interactors', 'lairs',
@@ -193,6 +193,9 @@ const SG_DICT = {
 };
 
 const SPAWN_TOOLS = {
+    /**
+     * for 3D games
+     */
     spawn(level) {
         const map = MAP_TOOLS.MAP[level].map;
         const GA = map.GA;
@@ -461,6 +464,47 @@ const SPAWN_TOOLS = {
     spawnSunFromCamera(position, lightColor) {
         SUN3D.add(new LightSource(position, DIR_DOWN, lightColor));
     },
+
+
+};
+
+const SPAWN_TOOLS_2D = {
+    /**
+     * for 2D games
+     */
+
+    spawn(level) {
+        const map = MAP_TOOLS.MAP[level].map;
+        const GA = map.GA;
+        const methods = ['monsters'];
+
+        //map.TextureExclusion = {};                              //not applicable in 2D // used to exclude world textures, where they are superseeded with custom texture, reset
+
+        methods.forEach(method => {
+            this[method](map, GA);
+        });
+
+        //MAP_TOOLS.setOcclusionMap(level); //not applicable in 2D
+        //ITEM3D.setup("3D", 4, 1); //
+        console.info(`Level ${level} spawned. 2D spwaner`);
+    },
+    monsters(map, GA) {
+        for (const M of map.monsters) {
+            //console.log("M", M);
+
+            const grid = GA.indexToGrid(M[0]);
+            const type = MONSTER_TYPE[M[1]];
+            const entity = new $2D_Entity(grid, type.dirRef, type, GA, true);
+
+            //console.log(".. grid", grid, "type", type, "entity", entity);
+            ENEMY2D.add(entity);
+        }
+        console.log("ENEMY2D", ENEMY2D);
+    },
+
+    /**
+     * lane based spwaner
+     */
     spawnLanes(level, GA = MAP_TOOLS.MAP[level].map.GA) {
         const map = MAP_TOOLS.MAP[level];
         const blinkGrids = [new Grid(1, 0), new Grid(4, 0), new Grid(7, 0), new Grid(10, 0), new Grid(13, 0)];
@@ -517,6 +561,7 @@ const SPAWN_TOOLS = {
         }
         if (MAP_TOOLS.INI.verbose) console.info(`Lanes for level ${level} spawned.`);
     }
+
 };
 
 class IAM_Storage {

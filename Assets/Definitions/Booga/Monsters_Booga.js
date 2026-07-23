@@ -14,7 +14,6 @@ const HERO_TYPE = {
         dirRef: UP,
         w: 64,
         h: 64,
-        //speed: 3.0 * 64,
         fps: 10,
     }
 };
@@ -28,7 +27,9 @@ const MONSTER_TYPE = {
         h: 64,
         dirRef: RIGHT,
         animate: true,
-        
+        fps: 60,
+        speed: 1.0 * 64,
+        behaviourArguments: [Infinity, ["wanderer"], 10000, ["hunter2D"]],
     },
 
 };

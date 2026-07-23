@@ -196,7 +196,7 @@ const WebGL = {
     dynamicLightSources: [MISSILE3D, EXPLOSION3D, FIRE3D],
     enemySources: [ENTITY3D],
     models: [$3D_MODEL],
-    sprite2D_list: [PLANE_GRID1D],
+    sprite2D_list: [PLANE_GRID1D, ENEMY2D],
     modelTextureSet: false,
     main_program: {
         vSource: "vShader",
@@ -427,6 +427,7 @@ const WebGL = {
         this.programs_compiled = true;
     },
     init_required_IAM(map, hero, game) {
+        //3D
         DECAL3D.init(map);
         LIGHTS3D.init(map);
         SUN3D.init(map);
@@ -444,7 +445,10 @@ const WebGL = {
         EXPLOSION3D.init(map, hero);
         LAIR.init(map, hero);
         ITEM_DROPPER3D.init(map);
+        //2D
         PLANE_GRID1D.init(map, hero);
+        ENEMY2D.init(map, hero);
+        //HERO, GAME
         this.hero = hero;
         this.game = game;
     },
@@ -2812,16 +2816,21 @@ class $2D_Sprite {
 
 class $2D_Entity {
     constructor(grid, dir, type, GA, useViewport = false) {
+        this.use
+        ImportTypeToConstructor(this, type);
         this.sprite = new $2D_Sprite(grid, dir, type);
         this.actor = this.sprite;                               // legacy compatibility, redundant already? probably, but i like it, so ...
         this.moveState = new MoveState(grid, dir, GA);
         this.GA = GA;
         this.useViewport = useViewport;
+        this.dirStack = [];
         if (this.sprite.speed) this.speed = this.sprite.speed;  // legacy compatibility
         this.motion = new Motion2D();
+        if (!this.static && this.behaviourArguments) this.behaviour = new Behaviour(...this.behaviourArguments);
     }
     draw(gl, program, spriteQuad, texture = this.sprite.getSpriteTexture()) {
         const modelMatrix = this.sprite.updateModelMatrix(this.useViewport);
+        //console.log(this.sprite.name, modelMatrix);
         gl.uniformMatrix4fv(program.uniformLocations.modelMatrix, false, modelMatrix);
         gl.uniform4fv(program.uniformLocations.tint, this.sprite.tint);
         gl.uniform4fv(program.uniformLocations.uvRect, [0, 0, 1, 1]);                           // frames are presplit, keep this for future compatibility, like texture atlases
@@ -2830,16 +2839,38 @@ class $2D_Entity {
         gl.drawArrays(gl.TRIANGLES, 0, spriteQuad.count);
     }
     startMoving(dir) {
-        this.sprite.rotationFromDir(dir);
         this.moveState.next(dir);
+        //not all dirs applicable for sprite rotation and movestate can have different dir, keep this comment or regret confusion later 
+        if (dir.y !== 0) dir = this.sprite.dir; //keep previouss dir, for up/down movement, previus dir can only be LEFT or RIGHT
+        this.sprite.rotationFromDir(dir);
     }
     continueMove(lapsedTime) {
         if (!this.moveState.moving) return;
-        GRID.translateMove2D(this, lapsedTime, null, true, this.useViewport);
+        GRID.translateMove2D(this, lapsedTime, null, true, false);
     }
     setSpeed(speed) {
         this.speed = speed;
         this.sprite.speed = speed;
+    }
+    manage(lapsedTime, IA, map, player) {
+        if (this.useViewport) {
+            ENGINE.VIEWPORT.alignToPosition(this.actor.pos, this.actor.vPos);
+        }
+    }
+    setDistanceFromNodeMap(nodemap, prop = "distance") {
+        let gridPosition = this.moveState.homeGrid;
+        //console.info("set distance from nodemap", nodemap, "grid", gridPosition);
+
+        let distance = nodemap[gridPosition.x][gridPosition.y].distance;
+        if (distance >= 0 && distance < Infinity) {
+            this[prop] = distance;
+        } else this[prop] = null;
+    }
+    hasStack() {
+        return this.dirStack.length > 0;
+    }
+    makeMove() {
+        this.startMoving(this.dirStack.shift());
     }
 }
 
@@ -2862,7 +2893,7 @@ class $2D_player extends $2D_Entity {
         ENGINE.VIEWPORT.vy += dir.y * WebGL.INI.VIEWPORT_SPEED;
         ENGINE.VIEWPORT.checkViewport();
 
-        //align all the actors
+        //align all the actors - elsewhere
         ENGINE.VIEWPORT.alignToPosition(this.actor.pos, this.actor.vPos);
         ENGINE.VIEWPORT.changed = true;
     }
@@ -2931,7 +2962,7 @@ class $2D_player extends $2D_Entity {
     continueMove(lapsedTime) {
         if (this.parent.carried) this.parent.handleCarry?.(this.parent.carried);
         if (!this.moveState.moving) return;
-        GRID.translateMove2D(this, lapsedTime, this.checkEndMove, true, this.useViewport);
+        GRID.translateMove2D(this, lapsedTime, this.checkEndMove, true, true);
     }
     checkEndMove() {
         const endValue = this.GA.getValue(this.moveState.startGrid);                        // translateMove2D commits the reached destination into startGrid

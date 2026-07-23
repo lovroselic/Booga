@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.5.3",
+    VERSION: "0.6.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -114,6 +114,7 @@ const PRG = {
             WebGL.VERBOSE = true;
             ENGINE.verbose = true;
             MAP_TOOLS.INI.VERBOSE = true;
+            AI.VERBOSE = true;
         }
     },
     start() {
@@ -208,7 +209,6 @@ const HERO = {
     completeLevel() {
         if (DEBUG.VERBOSE) console.ok("level completed");
         GAME.levelComplete = true;
-        //AUDIO.LevelUp.play();
         GAME.level = Math.min(INI.MAX_LEVEL, ++GAME.level);
         GAME.levelStart();
     },
@@ -473,6 +473,8 @@ const GAME = {
         GAME.setCameraView();
         GAME.setWorld();
         GAME.levelExecute();
+        AI.initialize(HERO.player, "2D");
+        AI.immobileWander = false;
     },
     levelExecute() {
         if (DEBUG.VERBOSE) {
@@ -502,7 +504,6 @@ const GAME = {
     },
     async createBitmaps(level) {
         await BITMAP.store(TEXTURE[`final_level_${level}`], "screen");
-        //await BITMAP.store(TEXTURE[`mask_level_${level}`], "screen"); //debug
     },
     addMask(level) {
         MAP[level].map.maskdata = ENGINE.imgToBinaryMask(TEXTURE[`mask_level_${level}`]);
@@ -513,6 +514,7 @@ const GAME = {
     buildWorld(level) {
         if (DEBUG.VERBOSE) console.info(" ******** building world, room/dungeon/level:", level);
         WebGL.init_required_IAM(MAP[level].map, HERO);
+        SPAWN_TOOLS_2D.spawn(level);
         //spawn from here - not yet implemented
     },
     newDungeon(level) {
@@ -564,7 +566,7 @@ const GAME = {
 
         TITLE.firstFrame();
         ENGINE.VIEWPORT.changed = true;
-        ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos); 
+        ENGINE.VIEWPORT.alignToPosition(HERO.player.actor.pos, HERO.player.actor.vPos);
         GAME.updateVieport();
     },
     run(lapsedTime) {
@@ -573,7 +575,7 @@ const GAME = {
         GAME.respond(lapsedTime);
         ENGINE.TIMERS.update();
         HERO.manage(lapsedTime);
-        //PLANE_GRID1D.manage(lapsedTime);
+        ENEMY2D.manage(lapsedTime, HERO.player);
         GAME.frameDraw(lapsedTime);
         HERO.concludeAction(lapsedTime);
         if (HERO.dead) IAM.checkIfProcessesComplete([EXPLOSION3D], HERO.death);

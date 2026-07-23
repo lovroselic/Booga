@@ -291,7 +291,8 @@ const GRID = {
      */
     translateMove2D(entity, lapsedTime, onFinish = null, animate = true, changeView = false) {
         let length = (lapsedTime / 1000) * entity.speed;
-        entity.actor.pos = entity.actor.pos.translate(entity.actor.dir, length);
+        //entity.actor.pos = entity.actor.pos.translate(entity.actor.dir, length);
+        entity.actor.pos = entity.actor.pos.translate(entity.moveState.dir, length);
         if (animate) entity.actor.updateAnimation(lapsedTime);
         entity.moveState.homeGrid = GRID.pointToGrid(entity.actor.pos);
         entity.moveState.pos = entity.actor.pos.toTopLeft().to_FP_Grid();
@@ -1034,9 +1035,10 @@ const MAPDICT = {
     HOLE: 2 ** 7,                           //128
 
     //aliases
-    MASK: 2 ** 2,                           //4
+    MASK: 2 ** 2,                           //4 - alias door, this is fucked Lovro, change to  VACANT_PLACEHOLDER1 for the next version!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //MASK: 2 ** 3,                         //8 - use this in the future
     WARP: 2 ** 5,                           //32 - STAIR alias -> route to another part of the dungeon
-    GOAL: 2 ** 14,                          //16384
+    GOAL: 2 ** 14,                          //16384 alias RESERVED
 
     //16 bit extension
     PILLAR: 2 ** 3,            //8
@@ -1079,6 +1081,7 @@ const EXPLOADABLES = [MAPDICT.BLOCKWALL, MAPDICT.DOOR];
 const ITEM_DROP_EXCLUSION = [MAPDICT.WALL, MAPDICT.BLOCKWALL, MAPDICT.PILLAR];
 const JUMP_MOVE = [MAPDICT.EMPTY, MAPDICT.HOLE, ...STAIRCASE_GRIDS];
 const PATH_GRIDS = [MAPDICT.EMPTY, ...STAIRCASE_GRIDS];
+const GRID2D_SIDEVIEW = [MAPDICT.WALL];
 
 class ArrayBasedDataStructure {
     constructor() { }
