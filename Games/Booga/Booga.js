@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.6.0",
+    VERSION: "0.6.1",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -180,7 +180,6 @@ const HERO = {
     die() {
         if (DEBUG.VERBOSE) {
             console.red("HERO.die");
-            //console.trace();
         }
 
         if (HERO.dead) return;
@@ -188,23 +187,23 @@ const HERO = {
         this.row = INI.MAX_ROW;
     },
     async death() {
-        if (DEBUG.VERBOSE) console.red("HERO.death");
         ENGINE.GAME.ANIMATION.stop();
         GAME.lives--;
-
+        if (DEBUG.VERBOSE) console.red(`HERO.death, lives: ${GAME.lives}`);
         //await AUDIO_TOOLS.waitUntilEnded(AUDIO.Splash);
-        //await AUDIO_TOOLS.playAndWait(AUDIO.Death);
+        await AUDIO_TOOLS.playAndWait(AUDIO.Death);
         HERO.finalDeath();
     },
     finalDeath() {
         console.red("HERO.finalDeath");
-        if (GAME.lives > 0) return GAME.continueLevel();
+        if (GAME.lives > 0) return GAME.continueLevel(GAME.level);
         GAME.checkScore();
         TITLE.hiscore();
         TITLE.startTitle();
     },
     manage(lapsedTime) {
         GRID.translateSpritePosition(HERO.player, lapsedTime, HERO.handleFinishedJump, true, true);
+        this.player.collisionToEntity();
     },
     completeLevel() {
         if (DEBUG.VERBOSE) console.ok("level completed");
@@ -453,21 +452,23 @@ const GAME = {
         GAME.fps = new FPS_short_term_measurement(300);
         if (DEBUG._2D_display) GRID.grid();
 
-        GAME.levelStart();
+        GAME.levelStart(GAME.level);
     },
     WebGL_settings() {
         WebGL.INI.BACKGROUND_ALPHA = 0.0;
     },
-    async levelStart() {
-        if (DEBUG.VERBOSE) console.log("Starting level", GAME.level);
+    async levelStart(level) {
+        if (DEBUG.VERBOSE) console.log("Starting level", level);
         GAME.prepareForRestart();
         HERO.construct();
         this.levelComplete = false;
-        await GAME.initLevel(GAME.level);
-        GAME.continueLevel();
+        await GAME.initLevel(level);
+        GAME.continueLevel(level);
     },
-    continueLevel() {
-        if (DEBUG.VERBOSE) console.log("Continue level", GAME.level);
+    continueLevel(level) {
+        if (DEBUG.VERBOSE) console.log("Continue level", level);
+        GAME.clearPools();
+        SPAWN_TOOLS_2D.spawn(level);
         HERO.dead = false;
         HERO.playerSetUp();
         GAME.setCameraView();
@@ -475,6 +476,9 @@ const GAME = {
         GAME.levelExecute();
         AI.initialize(HERO.player, "2D");
         AI.immobileWander = false;
+    },
+    clearPools() {
+        ENEMY2D.clearAll();
     },
     levelExecute() {
         if (DEBUG.VERBOSE) {
@@ -514,8 +518,7 @@ const GAME = {
     buildWorld(level) {
         if (DEBUG.VERBOSE) console.info(" ******** building world, room/dungeon/level:", level);
         WebGL.init_required_IAM(MAP[level].map, HERO);
-        SPAWN_TOOLS_2D.spawn(level);
-        //spawn from here - not yet implemented
+        //SPAWN_TOOLS_2D.spawn(level);
     },
     newDungeon(level) {
         MAP_TOOLS.unpack(level);

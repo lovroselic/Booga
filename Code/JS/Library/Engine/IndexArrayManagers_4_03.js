@@ -380,7 +380,7 @@ class Enemy2D extends IAM {
                 continue;
             }
 
-            //entity/player collision
+            //entity/player collision - in player
 
             //set behaviour and move
             let distance = entity.distance;

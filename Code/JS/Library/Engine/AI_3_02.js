@@ -68,7 +68,7 @@ const AI = {
         gridValue = gridValue.sum();
         const enemyGrid = this.getPosition(enemy);
         const directions = enemy.parent.map.GA.getDirectionsIfNot(enemyGrid, gridValue, enemy.fly, enemy.moveState.dir.mirror());
-        if (AI.VERBOSE) console.info(enemy.name, enemy.id, "WANDERER", enemy.moveState.pos, "gridValue", gridValue, "dirs", directions, "this.getPosition(enemy)", this.getPosition(enemy));
+        //if (AI.VERBOSE) console.info(enemy.name, enemy.id, "WANDERER", enemy.moveState.pos, "gridValue", gridValue, "dirs", directions, "this.getPosition(enemy)", this.getPosition(enemy));
         if (directions.length) {
             const randomDir = directions.chooseRandom();
             if (randomDir.constructor.name !== "Vector3D" && randomDir.constructor.name !== "Vector") throw new Error("WTF!");
@@ -81,7 +81,7 @@ const AI = {
         }
     },
     immobile(enemy, wasWandering = false) {
-        if (this.VERBOSE) console.warn(`${enemy.name}-${enemy.id} IMMOBILE`);
+        //if (this.VERBOSE) console.warn(`${enemy.name}-${enemy.id} IMMOBILE`);
         if (!wasWandering && AI.immobileWander) return this.wanderer(enemy);  // preventing endless recursion
         return [NOWAY3];
     },
@@ -204,7 +204,6 @@ const AI = {
     hunt2D(enemy, player) {
         if (this.VERBOSE) console.warn("...hunt", enemy.name, enemy.id, "player", player);
         const nodeMap = enemy.parent.map.GA.nodeMap;
-        console.log("nodeMap", nodeMap);
         let grid = this.getPosition(enemy);
         if (this.VERBOSE) console.log(".....enemy position grid", grid);
         let _goto = nodeMap[grid.x][grid.y]?.goto || NOWAY;

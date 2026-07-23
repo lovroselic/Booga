@@ -2716,7 +2716,8 @@ class $2D_Sprite {
         this.pos = GRID.gridToCenterPX(grid);                       // Point
         this.vPos = GRID.gridToCenterPX(grid);                      // Point - viewport support
         this.dir = dir;
-        ImportTypeToConstructor(this, type);
+        this.preventRotation = false,
+            ImportTypeToConstructor(this, type);
         this.tint = tint;
         this.setAsset(this.asset);
         this.setDirRef(this.dirRef);
@@ -2743,7 +2744,7 @@ class $2D_Sprite {
     }
     rotationFromDir(dir) {
         this.dir = dir;
-        this.rotation = dir.radAngleBetweenVectors(this.dirRef);
+        if (!this.preventRotation) this.rotation = dir.radAngleBetweenVectors(this.dirRef);   // don't rotate and flip
     }
     reset() {
         this.frame = 0;
@@ -2879,7 +2880,6 @@ class $2D_player extends $2D_Entity {
         super(grid, dir, type, GA, useViewport);
         this.parent = parent;
         this.map = map;
-        this.IA = map.enemyIA;
         this.checkEndMove = this.checkEndMove.bind(this);
     }
     move(dir) {
@@ -2993,6 +2993,19 @@ class $2D_player extends $2D_Entity {
     }
     addDeathTexture(img) {
         this.deathTexture = WebGL.createTexture(img);
+    }
+    collisionToEntity() {
+        const IA = this.map.enemyIA;
+        if (IA) {
+            const who = IA.unroll(this.moveState.homeGrid)[0] || null;
+            if (who) {
+                const entity = ENEMY2D.show(who);
+                const enityArea = entity.sprite.getArea();
+                const playerArea = this.sprite.getArea();
+                if (playerArea.overlap(enityArea)) this.parent.die?.();
+            }
+        }
+
     }
 }
 

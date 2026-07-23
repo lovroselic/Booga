@@ -30,6 +30,7 @@ const MONSTER_TYPE = {
         fps: 60,
         speed: 1.0 * 64,
         behaviourArguments: [Infinity, ["wanderer"], 10000, ["hunter2D"]],
+        preventRotation: true,
     },
 
 };
