@@ -2856,6 +2856,7 @@ class $2D_Entity {
     manage(lapsedTime, IA, map, player) {
         if (this.useViewport) {
             ENGINE.VIEWPORT.alignToPosition(this.actor.pos, this.actor.vPos);
+            if (this.static) this.sprite.updateAnimation(lapsedTime);
         }
     }
     setDistanceFromNodeMap(nodemap, prop = "distance") {

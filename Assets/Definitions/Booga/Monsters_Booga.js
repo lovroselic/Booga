@@ -32,5 +32,19 @@ const MONSTER_TYPE = {
         behaviourArguments: [Infinity, ["wanderer"], 10000, ["hunter2D"]],
         preventRotation: true,
     },
+    CarniPlant: {
+        name: "CarniPlant",
+        category: "enemy",
+        asset: "CarniPlant",
+        w: 64,
+        h: 64,
+        dirRef: RIGHT,
+        animate: true,
+        fps: 12,
+        //speed: 1.0 * 64,
+        static: true,
+        //behaviourArguments: [Infinity, ["wanderer"], 10000, ["hunter2D"]],
+        preventRotation: true,
+    },
 
 };

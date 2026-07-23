@@ -384,18 +384,20 @@ class Enemy2D extends IAM {
 
             //set behaviour and move
             let distance = entity.distance;
-            entity.behaviour.manage(entity, distance);
-            if (!entity.hasStack()) {
+            if (!entity.static) {
+                entity.behaviour.manage(entity, distance);
+                if (!entity.hasStack()) {
 
-                let ARG = {
-                    player: reference,
-                    block: []
-                };
+                    let ARG = {
+                        player: reference,
+                        block: []
+                    };
 
-                entity.dirStack = AI[entity.behaviour.strategy](entity, ARG);
-                if (IndexArrayManagers.VERBOSE) console.info(`${entity.name} ${entity.id} dirStack`, entity.dirStack, "dir", entity.moveState.dir, "strategy", entity.behaviour.strategy, `distance: ${distance}`);
+                    entity.dirStack = AI[entity.behaviour.strategy](entity, ARG);
+                    if (IndexArrayManagers.VERBOSE) console.info(`${entity.name} ${entity.id} dirStack`, entity.dirStack, "dir", entity.moveState.dir, "strategy", entity.behaviour.strategy, `distance: ${distance}`);
+                }
+                entity.makeMove();
             }
-            entity.makeMove();
         }
     }
 }

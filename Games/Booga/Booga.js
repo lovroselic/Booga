@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.6.1",
+    VERSION: "0.6.2",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -114,7 +114,7 @@ const PRG = {
             WebGL.VERBOSE = true;
             ENGINE.verbose = true;
             MAP_TOOLS.INI.VERBOSE = true;
-            AI.VERBOSE = true;
+            //AI.VERBOSE = true;
         }
     },
     start() {
@@ -808,7 +808,8 @@ const TITLE = {
         const fs = 20;
         CTX.font = fs + "px Booga";
         CTX.textAlign = "center";
-        let txt = CTX.measureText(PRG.NAME);
+        const smallTitle = MAP[GAME.level].name;
+        let txt = CTX.measureText(smallTitle);
         let x = ENGINE.titleWIDTH / 2;
         let y = fs + 2;
         let gx = x - txt.width / 2;
@@ -820,7 +821,7 @@ const TITLE = {
         CTX.shadowOffsetX = 1;
         CTX.shadowOffsetY = 1;
         CTX.shadowBlur = 1;
-        CTX.fillText(PRG.NAME, x, y);
+        CTX.fillText(smallTitle, x, y);
     },
     drawButtons() {
         ENGINE.clearLayer("button");
