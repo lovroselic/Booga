@@ -3431,6 +3431,44 @@ const ENGINE = {
             ENGINE.BLOCKGRID.setColor(color);
             ENGINE.BLOCKGRID.setBackground(background);
             if (hintLayer) ENGINE.BLOCKGRID.setHintLayer(hintLayer);
+        },
+        /** 
+         * drawing automated mask from 2D grid
+         * currently supports very black and white WALL, EMPTY
+         * */
+        drawMask(CTX, maze) {
+            ENGINE.clearCTX(CTX);
+            const sizeX = parseInt(maze.width, 10);
+            const sizeY = parseInt(maze.height, 10);
+
+            for (let x = 0; x < sizeX; x++) {
+                for (let y = 0; y < sizeY; y++) {
+                    const grid = new Grid(x, y);
+                    let value = maze.GA.getValue(grid);
+
+                    switch (value) {
+                        case MAPDICT.EMPTY:
+                        case MAPDICT.RESERVED:
+                            ENGINE.BLOCKGRID.block(x, y, "#000000");
+                            break;
+                        case MAPDICT.WALL:
+                            ENGINE.BLOCKGRID.block(x, y, "#FFFFFF");
+                            break;
+                        case MAPDICT.MASK:
+                            //do nothing for those
+                            break;
+                        default:
+                            console.warn(`BLOCKGRID.drawMask not supported for value: ${value}. Ignoring!`);
+                    }
+                }
+            }
+        },
+        block(x, y, color, CTX = LAYER.mask) {
+            CTX.fillStyle = color;
+            let px = x * ENGINE.INI.GRIDPIX;
+            let py = y * ENGINE.INI.GRIDPIX;
+            CTX.fillRect(px, py, ENGINE.INI.GRIDPIX, ENGINE.INI.GRIDPIX);
+
         }
     },
     BLOCKGRID3D: {
@@ -3521,7 +3559,7 @@ const ENGINE = {
                             //do nothing for those
                             break;
                         default:
-                            console.warn(`drawMask not supported for value: ${value}. Ignoring!`);
+                            console.warn(`BLOCKGRID3D.drawMask not supported for value: ${value}. Ignoring!`);
                     }
                 }
             }

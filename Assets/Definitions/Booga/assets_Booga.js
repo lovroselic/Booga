@@ -52,9 +52,12 @@ LoadTextures = [
 
     //masks
     { srcName: "Mask/mask_level_1.webp", name: "mask_level_1" },
+    { srcName: "Mask/mask_level_2.webp", name: "mask_level_2" },
 
     //screens
-    { srcName: "Screen/final_level_1.webp", name: "final_level_1" },
+    { srcName: "Mask/final_level_1.webp", name: "final_level_1" },
+    { srcName: "Mask/final_level_2.webp", name: "final_level_2" },
+
 ];
 
 LoadAudio = [
@@ -162,7 +165,12 @@ LoadSprites = [
     { srcName: "MaskElements/RoughLine.png", name: "RoughLine" },
     { srcName: "MaskElements/Line.png", name: "Line" },
     { srcName: "MaskElements/ThirdToHalf.png", name: "ThirdToHalf" },
-
+    { srcName: "MaskElements/FullDeepWedge.png", name: "FullDeepWedge" },
+    { srcName: "MaskElements/FullDeepWedge2.png", name: "FullDeepWedge2" },
+    { srcName: "MaskElements/highLedge2.png", name: "highLedge2" },
+    { srcName: "MaskElements/HalfToHalf.png", name: "HalfToHalf" },
+    { srcName: "MaskElements/ThirdToThird.png", name: "ThirdToThird" },
+    { srcName: "MaskElements/highLedge3.png", name: "highLedge3" },
 
 ];
 

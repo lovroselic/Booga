@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.6.2",
+    VERSION: "0.7.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -445,7 +445,7 @@ const GAME = {
         ENGINE.GAME.setGameLoop(GAME.run);
         ENGINE.GAME.start(16);
         GAME.extraLife = SCORE.extraLife.clone();
-        GAME.level = 1; //1
+        GAME.level = 2; //1
         GAME.lives = 3; //3
         GAME.score = 0;
 

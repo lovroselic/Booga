@@ -33,12 +33,20 @@ const INI = {
     USE_MAZE: false,
     USE_SAVEGAME: false,
     USE_3D: false,
+    USE_WORLD: false,
 };
 
 const MAP = {
+
+    /*Demo: {
+        name: "Booga",
+        data: '{"width":"40","height":"40","map":"BB40AA1443B$BB39AA38BB38A"}',
+        start: '[1540,1]',
+    },*/
+
     Demo: {
         name: "Booga",
-        data: '{"width":"40","height":"40","depth":1,"map":"BB40AA1443B$BB39AA38BB38A"}',
+        data: '{"width":"40","height":"40","map":"BB25AA215EAA26EE2AA295BAA2BAA23BAA3BAA3BAA26BAA2EBAA3EAEAA30BAA3EAA31EAA92EE2AA28EAA14EAA28EAA60EAA35BAA8BAA30EAA7EAEAA10EAA4EAA51EE2AEE2AEAA52EAA56EAA65EAA65BB28EE2BB7AA23BB3ABB2AA2BB23AA2BB10ABB8ABB6ABB56A$EAA6EBABB3AA3EAA4EBABB3EE2BB5EBB4EBB5ABB10EBEE2BB6ABB5EBAA10EBEAA2B"}',
         start: '[1540,1]',
     }
 };
@@ -67,7 +75,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.20.0",
+    VERSION: "0.20.1",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -87,6 +95,8 @@ const PRG = {
     },
     setup() {
         console.log("PRG.setup");
+
+        if (!INI.USE_3D) MAP_TOOLS.use2D();
         $("#verticalGrid").change(GAME.updateWH);
         $("#horizontalGrid").change(GAME.updateWH);
         $("#gridsize").change(GAME.updateWH);
@@ -123,7 +133,7 @@ const PRG = {
         if (INI.USE_MASK) {
             $("#buttons").on("click", "#copy_mask", GAME.copyMaskToClipboard);
             $("#buttons").on("click", "#copy_decal", GAME.copyDecalMaskToClipboard);
-            $("#buttons").on("click", "#create_mask", GAME.createMask);
+            $("#buttons").on("click", "#clear_mask", GAME.createMask);
             $("#buttons").on("click", "#download_mask", GAME.downloadMask);
             $("#buttons").on("click", "#textured_mask", GAME.textureToMask);
         }
@@ -341,14 +351,18 @@ const GAME = {
 
         WebGL.MOUSE.initialize("ROOM");
         WebGL.setContext("webgl");
-        GAME.buildWorld(level, map);                                        // Build surface FIRST, because hero placement depends on quadMap/zMap.
 
-        const start_dir = map.startPosition.vector;
-        const start_grid = Grid.toClass(map.startPosition.grid);
-        HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map);
+        if (INI.USE_WORLD) {
 
-        GAME.setCameraView();
-        GAME.setWorld(map);
+            GAME.buildWorld(level, map);                                        // Build surface FIRST, because hero placement depends on quadMap/zMap.
+
+            const start_dir = map.startPosition.vector;
+            const start_grid = Grid.toClass(map.startPosition.grid);
+            HERO.player = new $2D_player(start_grid, start_dir, HERO_TYPE.Booga, map.GA, map);
+
+            GAME.setCameraView();
+            GAME.setWorld(map);
+        }
         console.info("MapEditor init completed", map);
     },
     buildWorld(level = GAME.level, map = GAME.activeMap()) {
@@ -363,9 +377,9 @@ const GAME = {
             map.zMap1 = QUAD_MAP.create_zMap(map.quadMap, map.GA, 1);
         }
 
-        if (typeof SPAWN_TOOLS !== "undefined" && SPAWN_TOOLS.spawn) SPAWN_TOOLS.spawn(level);
+        //if (typeof SPAWN_TOOLS !== "undefined" && SPAWN_TOOLS.spawn) SPAWN_TOOLS.spawn(level);
 
-        if (INI.USE_OCCLUSION_MAP) GAME.rebuildOcclusionMap(map);
+        //if (INI.USE_OCCLUSION_MAP) GAME.rebuildOcclusionMap(map);
         //map.world = WORLD.buildSurfaceBasedWorld(map);
         map.world = WORLD.build(map);
         MAP[level].world = map.world;
@@ -379,6 +393,7 @@ const GAME = {
         const textureData = {
             wall: TEXTURE[$("#walltexture")[0].value],
             floor: TEXTURE[$("#floortexture")[0].value],
+            ceil: TEXTURE[$("#ceiltexture")[0].value],
             frontPanorama: TEXTURE[$("#frontPanorama")[0].value],
             leftPanorama: TEXTURE[$("#leftPanorama")[0].value],
             rightPanorama: TEXTURE[$("#rightPanorama")[0].value],
@@ -477,12 +492,13 @@ const GAME = {
         }
         ENGINE.addBOX("WEBGL", 1024, 768, ["3d_webgl"], null);
 
-        $("#buttons").append("<input type='button' id='new' value='New' class='red_button>");
+        $("#buttons").append("<input type='button' id='new' value='New' class='red_button'>");
         $("#buttons").append("<input type='button' id='export' value='Export'>");
         $("#buttons").append("<input type='button' id='import' value='Import'>");
         $("#buttons").append("<input type='button' id='copy' value='MAP to Clipboard' class='green_button'>");
 
         if (INI.USE_MASK) {
+            $("#buttons").append("<input type='button' id='clear_mask' value='ClearMask' class='red_button'>");
             $("#buttons").append("<input type='button' id='download_mask' value='DownloadImgs'>");
             $("#buttons").append("<input type='button' id='textured_mask' value='TextureToMask'>");
         }
@@ -1772,13 +1788,13 @@ const GAME = {
         ENGINE.saveCTXAsWEBP(LAYER.mask, `mask_level_${RoomID}.png`);
         ENGINE.saveCTXAsWEBP(LAYER.final, `final_level_${RoomID}.png`, "#000000");
     },
-    createMask() {
-        const OK = confirm("Sure? Current mask will be lost.");
-        if (!OK) return;
-        console.warn("creating mask");
+    createMask(ok) {
+        //const OK = ok || confirm("Sure? Current mask will be lost.");
+        //if (!OK) return;
+        console.warn("clearing mask");
         $MAP.mask_moves.clear();
-        $("#mask_moves_exp").html(JSON.stringify($MAP.mask_moves));
-        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
+        $MAP.mask_decal_moves.clear();
+        ENGINE.BLOCKGRID.drawMask(LAYER.mask, $MAP.map);
     },
     maskVisibility() {
         if ($("input[name='mask']")[0].checked) {
@@ -1786,7 +1802,9 @@ const GAME = {
         } else $("canvas[title = 'mask']").hide();
     },
     paintMask() {
-        ENGINE.BLOCKGRID3D.drawMask(LAYER.mask, $MAP.map);
+        //console.trace();
+        //console.info("painting mask");
+        ENGINE.BLOCKGRID.drawMask(LAYER.mask, $MAP.map);
         const gs = parseInt($("#gridsize").val(), 10);
         const maskCanvasId = $("#ROOM canvas[title='mask']").attr("id");
 
@@ -1819,9 +1837,21 @@ const GAME = {
     render(refresh3D = true) {
         const radio = $("#selector input[name=renderer]:checked").val();
         const dimension = $("#dimensions input[name=dimensions]:checked").val();
+
         switch (radio) {
             case "block":
-                GAME.blockGrid3D();
+
+                switch (dimension) {
+                    case "2D":
+                        GAME.blockGrid();
+                        //GAME.blockGrid3D();
+                        break;
+                    case "3D":
+                        GAME.blockGrid3D();
+                        break;
+                };
+
+                //GAME.blockGrid3D();
                 break;
         }
 
@@ -1846,13 +1876,6 @@ const GAME = {
 
         }
 
-        // refresh3D !== false is intentional:
-        // jQuery event objects passed by click/change handlers should still count as "true".
-
-        /*if (refresh3D !== false && GAME.started && $MAP.map?.GA) {
-            GAME.levelStart();
-        }*/
-
     },
     stack: {
         fillCount: 0,
@@ -1861,12 +1884,23 @@ const GAME = {
         endGrid: null,
     },
     fillArea(from, to, fillValue) {
+        const dimension = $("#dimensions input[name=dimensions]:checked").val();
+        console.warn("fillArea", from, to, fillValue, "dimension", dimension);
         const W = to.x - from.x;
         const H = to.y - from.y;
         if (to.z !== from.z) return "Needs to be same slice depth.";
         if (H < 0 || W < 0) return "At least one dimension is negative!";
-        console.info("fillArea", from.x, from.y, W, H, from.z, fillValue);
-        $MAP.map.GA.fillArea(from.x, from.y, W, H, from.z, fillValue);
+
+        switch (dimension) {
+            case "2D":
+                $MAP.map.GA.fillArea(from.x, from.y, W, H, fillValue);
+                break;
+            case "3D":
+                $MAP.map.GA.fillArea(from.x, from.y, W, H, from.z, fillValue);
+                break;
+        };
+
+        //$MAP.map.GA.fillArea(from.x, from.y, W, H, from.z, fillValue);
         return null;
     },
     clearGrid(gridIndex) {
@@ -1950,8 +1984,6 @@ const GAME = {
             $MAP.depth = parseInt($("#depthGrid").val(), 10) || 1;
             console.chapter("INIT", $MAP.width, $MAP.height, $MAP.depth);
 
-            //$MAP.map = FREE_MAP3D.create($MAP.width, $MAP.height, 1, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
-
             switch (dimension) {
                 case "2D":
                     $MAP.map = FREE_MAP.create($MAP.width, $MAP.height, null, MAP_TOOLS.INI.GA_BYTE_SIZE);
@@ -1965,14 +1997,18 @@ const GAME = {
             $MAP.map.GA.fill(MAPDICT.EMPTY);
             $MAP.init();
 
-            GAME.ensureTerrain();
-            NOISE_FUNCTION.generate_terrain();
+            if (INI.USE_TERRAIN) {
+                GAME.ensureTerrain();
+                NOISE_FUNCTION.generate_terrain();
+            }
 
+            GAME.createMask();
             console.log("GAME.init ->map:", $MAP.map);
             GAME.render();
         }
     },
     blockGrid3D() {
+        //console.warn("blockgrid3D", $MAP.map);
         let corr = $("input[name='corr']")[0].checked;
         ENGINE.resizeBOX("ROOM");
 
@@ -1980,6 +2016,15 @@ const GAME = {
         ENGINE.BLOCKGRID.configure("pacgrid", "#FFF", "#000", "hint");
         console.log("GAME.blockGrid3D -> GAME.floor", GAME.floor);
         ENGINE.BLOCKGRID3D.draw($MAP.map, GAME.floor, corr);
+    },
+    blockGrid() {
+        //console.warn("blockgrid", $MAP.map);
+        let corr = $("input[name='corr']")[0].checked;
+        ENGINE.resizeBOX("ROOM");
+
+        $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
+        ENGINE.BLOCKGRID.configure("pacgrid", "#FFF", "#000");
+        ENGINE.BLOCKGRID.draw($MAP.map, corr);
     },
     swapGates() {
         const temp = $("#sgateID")[0].value;
@@ -2026,7 +2071,17 @@ spawnDelay: ${SpawnDelay},`
         if (INI.USE_TEXTURES) {
             roomExport += `
 wall: "${$("#walltexture")[0].value}",
+`;
+        }
+
+        if (INI.USE_FLOORS) {
+            roomExport += `
 floor: "${$("#floortexture")[0].value}",
+`;
+        }
+
+        if (INI.USE_CEIL) {
+            roomExport += `
 ceil: "${$("#ceiltexture")[0].value}",
 `;
         }
@@ -2091,6 +2146,8 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         const SpawnDelay = ImportText.extractGroup(/spawnDelay:\s(\d*)/);
         $("#spawn_delay").val(SpawnDelay);
 
+
+        //textures
         const Textures = ["wall", "floor", "ceil"];
         for (const prop of Textures) {
             const pattern = new RegExp(`${prop}:\\s"(.*)"`);
@@ -2098,6 +2155,7 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             console.info(prop, ImportText.extractGroup(pattern));
         }
 
+        // panaorama
         if (INI.USE_PANORAMA) {
             const Panoramas = ["frontPanorama", "leftPanorama", "rightPanorama", "backPanorama", "archPanorama", "skyPanorama"];
             for (const prop of Panoramas) {
@@ -2106,13 +2164,23 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             }
         }
 
-        console.log("Import data", Import);
+        $MAP.width = parseInt(Import.width, 10);
+        $MAP.height = parseInt(Import.height, 10);
+        $MAP.depth = parseInt(Import.depth, 10) || 1;
+        console.log("Import data", Import, "dims", $MAP.width, $MAP.height, $MAP.depth);
 
-        if (dimension === "2D") {
-            $MAP.map = FREE_MAP.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
-        } else $MAP.map = FREE_MAP3D.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+        switch (dimension) {
+            case "2D":
+                $MAP.map = FREE_MAP.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+                break;
+            case "3D":
+                $MAP.map = FREE_MAP3D.import(Import, MAP_TOOLS.INI.GA_BYTE_SIZE);
+                GAME.setFloorButtons();
+                break;
+        };
 
         $MAP.init();
+
         WebGL.init_required_IAM($MAP.map, HERO);
         if (INI.USE_TEXTURES) GAME.updateTextures(false);
 
@@ -2120,18 +2188,15 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             const pattern = new RegExp(`\\b${prop}:\\s'(.*)'`);
             let value = ImportText.extractGroup(pattern);
             console.info(prop, value);
-            //$MAP.map[prop] = JSON.parse(value) || [];
             $MAP.map[prop] = value ? (JSON.parse(value) || []) : [];
         }
 
         $("#monster_list").val($MAP.map.monsterList.join(","));
 
         GAME.setStartPositionFromStart($MAP.map);
-        $MAP.width = Import.width;
-        $MAP.height = Import.height;
-        $MAP.depth = Import.depth || 1;
-        $("#horizontalGrid").val(Import.width);
-        $("#verticalGrid").val(Import.height);
+
+        $("#horizontalGrid").val($MAP.width);
+        $("#verticalGrid").val($MAP.height);
         $("#depthGrid").val($MAP.depth);
         $("#horizontalGrid").trigger("change");
         $("#verticalGrid").trigger("change");
@@ -2157,8 +2222,8 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
         ENGINE.resizeBOX("ROOM");
         GAME.resizeGL_window();
         $(ENGINE.gameWindowId).width(ENGINE.gameWIDTH + 4);
-        GAME.setFloorButtons();
-        $MAP.map.textureMap = $MAP.map.GA.toTextureMap();
+
+        //$MAP.map.textureMap = $MAP.map.GA.toTextureMap();
         GAME.render();
 
         console.info("IMPORT $MAP.map", $MAP.map);
@@ -2253,7 +2318,7 @@ skyPanorama: "${$("#skyPanorama")[0].value}",
             const start = XY_plane_length * GAME.floor;
             const end = start + XY_plane_length;
             const plane_GA_map = maze.GA.map.slice(start, end);
-            const tempMaze = FREE_MAP.create(maze.width, maze.height);
+            const tempMaze = FREE_MAP.create(maze.width, maze.height, MAP_TOOLS.INI.GA_BYTE_SIZE);
             tempMaze.GA.importMap(plane_GA_map);
             tempMaze.carveMaze(startGrid);
             maze.GA.map.set(tempMaze.GA.map, start);

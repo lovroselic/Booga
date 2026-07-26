@@ -45,7 +45,7 @@ const SKY_DECALS = [
 const MASK_ELEMENTS = [
     "CurvedTriangle", "Peak", "Ridge", "SharpCorner", "Tit", "Triangle", "Circular", "Crescent", "Half", "Ledge", "Spiky", "Stalag", "Third", "Wavy", "Full_Ledge", "HighLedge", "HalfCorner", "ThirdToZero",
     "CrescentLedge", "IsolatedLedge", "HalfToZero", "Full", "Fullish", "HalfToFull", "ThirdToFull", "MiniCorner", "Pedestal", "HalfRidge", "InvCurvedTriangle", "InvHalfCorner", "InvHalfToFull", "InvHalfToZero", "InvThirdToFull", "InvThirdToZero",
-    "ThirdRidge", "AnotherLedge", "LowLedge", "HalfToLedge", "ThirdToLedge", "RoughLine", "Line", "ThirdToHalf",
+    "ThirdRidge", "AnotherLedge", "LowLedge", "HalfToLedge", "ThirdToLedge", "RoughLine", "Line", "ThirdToHalf", "FullDeepWedge", "FullDeepWedge2", "highLedge2","HalfToHalf","ThirdToThird","highLedge3",
 ];
 
 const MASK_DECALS = [

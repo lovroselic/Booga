@@ -1471,6 +1471,17 @@ class GridArray extends Classes([ArrayBasedDataStructure, GA_Dimension_Agnostic_
             }
         }
     }
+    fill(fill) {
+        this.map.fill(fill);
+    }
+    fillArea(X, Y, W, H, set) {
+        for (let x = X; x <= X + W; x++) {
+            for (let y = Y; y <= Y + H; y++) {
+                let grid = new Grid(x, y);
+                this.setValue(grid, set);
+            }
+        }
+    }
     importMap(map) {
         this.map = map;
     }

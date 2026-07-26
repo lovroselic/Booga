@@ -486,7 +486,7 @@ const SPAWN_TOOLS_2D = {
 
         //MAP_TOOLS.setOcclusionMap(level); //not applicable in 2D
         //ITEM3D.setup("3D", 4, 1); //
-        console.info(`Level ${level} spawned. 2D spwaner`);
+        console.info(`Level ${level} spawned. 2D spawner`);
     },
     monsters(map, GA) {
         for (const M of map.monsters) {
@@ -503,7 +503,7 @@ const SPAWN_TOOLS_2D = {
     },
 
     /**
-     * lane based spwaner
+     * lane based spawner
      */
     spawnLanes(level, GA = MAP_TOOLS.MAP[level].map.GA) {
         const map = MAP_TOOLS.MAP[level];
