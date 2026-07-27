@@ -31,7 +31,7 @@ const DEBUG = {
 
 const INI = {
     SCREEN_BORDER: 64,
-    MAX_LEVEL: 1,
+    MAX_LEVEL: 2,
     JUMP_POWER_INC: 1,          // not tuned
     MAX_JUMP_POWER: 100,        // not tuned
     JUMP_SPEED_FACTOR: 20,      // converts charged power into pixels/second
@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.7.0",
+    VERSION: "0.7.1",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -206,10 +206,10 @@ const HERO = {
         this.player.collisionToEntity();
     },
     completeLevel() {
-        if (DEBUG.VERBOSE) console.ok("level completed");
         GAME.levelComplete = true;
         GAME.level = Math.min(INI.MAX_LEVEL, ++GAME.level);
-        GAME.levelStart();
+        if (DEBUG.VERBOSE) console.ok(`level completed, next one: ${GAME.level}`);
+        GAME.levelStart(GAME.level);
     },
     playerSetUp() {
         const map = MAP[GAME.level].map;

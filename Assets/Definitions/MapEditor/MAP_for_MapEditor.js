@@ -45,14 +45,19 @@ const SKY_DECALS = [
 const MASK_ELEMENTS = [
     "CurvedTriangle", "Peak", "Ridge", "SharpCorner", "Tit", "Triangle", "Circular", "Crescent", "Half", "Ledge", "Spiky", "Stalag", "Third", "Wavy", "Full_Ledge", "HighLedge", "HalfCorner", "ThirdToZero",
     "CrescentLedge", "IsolatedLedge", "HalfToZero", "Full", "Fullish", "HalfToFull", "ThirdToFull", "MiniCorner", "Pedestal", "HalfRidge", "InvCurvedTriangle", "InvHalfCorner", "InvHalfToFull", "InvHalfToZero", "InvThirdToFull", "InvThirdToZero",
-    "ThirdRidge", "AnotherLedge", "LowLedge", "HalfToLedge", "ThirdToLedge", "RoughLine", "Line", "ThirdToHalf", "FullDeepWedge", "FullDeepWedge2", "highLedge2","HalfToHalf","ThirdToThird","highLedge3",
+    "ThirdRidge", "AnotherLedge", "LowLedge", "HalfToLedge", "ThirdToLedge", "RoughLine", "Line", "ThirdToHalf", "FullDeepWedge", "FullDeepWedge2", "highLedge2", "HalfToHalf", "ThirdToThird", "highLedge3",
 ];
 
 const MASK_DECALS = [
     "AmanitaClusterFullback1", "AmanitaFullback1", "AmanityFull2", "Eyes2", "Flower1", "Fungi1", "Fungi2", "Fungus1", "Fungus3", "Fungus4", "GreenFungiClusterFullBack1", "GreenWallFungi1",
     "Lichen", "Moss1", "Moss2", "Plant1", "Plant2", "Roots", "SideFungus", "Spider1", "Spider2", "Spider3", "Spider4", "Spider5",
     "WallFungi1", "WallFungi2", "WallFungi3", "WallFungi4", "WallFungi5", "YellowEyes1", "YellowPlant1",
-    "Mushroom_233", "Mushroom_234", "Mushroom_235", "Mushroom_236", "Mushroom_237", "Mushroom_238", "Mushroom_239", "Mushroom_240", "Mushroom_241", "Mushroom_242", "RocketBooga",
+    "Mushroom_233", "Mushroom_234", "Mushroom_235", "Mushroom_236", "Mushroom_237", "Mushroom_238", "Mushroom_239", "Mushroom_240", "Mushroom_241", "Mushroom_242",
+    "RocketBooga",
+    "Amanita11", "Amanita12", "Amanita13", "Fungi101", "Fungi101103", "Fungi101123", "Fungi1011231111", "Fungi1011232", "Fungi1011232aa", "Fungi10113213122", "Fungi101543", "Fungi102",
+    "Fungi1023", "Fungi104", "Fungi121", "Fungi201", "Fungi22221", "Moss432", "Spider123", "Spider124", "Spider126", "Spider129",
+    
+
 ];
 
 const TRIGGER_DECALS = [];

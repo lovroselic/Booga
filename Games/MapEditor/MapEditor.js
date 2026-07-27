@@ -75,7 +75,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.20.1",
+    VERSION: "0.20.2",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -894,6 +894,7 @@ const GAME = {
         $("#randpic").click(GAME.randomPic);
         $("#randcrest").click(GAME.randomCrest);
         $("#randlight").click(GAME.randomLight);
+        $("#randmaskdecal").click(GAME.randomMaskDecal);
 
         /** clicks */
 
@@ -946,6 +947,7 @@ const GAME = {
                     GAME.randomPic();
                     GAME.randomCrest();
                     GAME.randomLight();
+                    GAME.randomMaskDecal();
                     break;
                 default:
                     break;
@@ -980,6 +982,14 @@ const GAME = {
         const texture = TextureList.chooseRandom();
         $(id).val(texture).change();
         ENGINE.drawToId(canvas, 0, 0, ENGINE.conditionalResize(TEXTURE[$(id)[0].value], 320));
+    },
+    randomMaskDecal() {
+        const searchMD = $("#searchMasksDecals").val().toLowerCase();
+        const filtered_mask_decals = MASK_DECALS.filter(decal => decal.toLowerCase().includes(searchMD));
+        const pic = filtered_mask_decals.chooseRandom();
+        if (!pic) return;
+        $("#mask_decal").val(pic).change();
+        ENGINE.drawRotatedToId("maskdecalcanvas", 0, 0, SPRITE[$("#mask_decal").val()], parseInt($("#mask_rotation").val(), 10) || 0, true, parseInt($("#mask_flip").val(), 10) || 0);
     },
     randomLight() {
         const search_light = $('#searchLights').val().toLowerCase();
