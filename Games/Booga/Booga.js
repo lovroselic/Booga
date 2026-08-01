@@ -31,7 +31,7 @@ const DEBUG = {
 
 const INI = {
     SCREEN_BORDER: 64,
-    MAX_LEVEL: 2,
+    MAX_LEVEL: 3,
     JUMP_POWER_INC: 1,          // not tuned
     MAX_JUMP_POWER: 100,        // not tuned
     JUMP_SPEED_FACTOR: 20,      // converts charged power into pixels/second
@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.8.0",
+    VERSION: "0.8.1",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -445,7 +445,7 @@ const GAME = {
         ENGINE.GAME.setGameLoop(GAME.run);
         ENGINE.GAME.start(16);
         GAME.extraLife = SCORE.extraLife.clone();
-        GAME.level = 2; //1
+        GAME.level = 3; //1
         GAME.lives = 3; //3
         GAME.score = 0;
 

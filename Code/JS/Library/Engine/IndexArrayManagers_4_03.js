@@ -372,6 +372,7 @@ class Enemy2D extends IAM {
             if (entity === null) continue;
             entity.manage(lapsedTime, map[this.IA], map, reference);
             entity.setDistanceFromNodeMap(map.GA.nodeMap);
+            entity.waiting = false;
 
             //entity translate position
             if (entity.moveState.moving) {
@@ -381,6 +382,9 @@ class Enemy2D extends IAM {
             }
 
             //entity/player collision - in player
+
+            //enemy/enemy collision resolution
+            if (IndexArrayManagers.EE_COLLISION_CHECK && this.enemy_enemy_collision_resolution(entity, map, lapsedTime)) continue;
 
             //set behaviour and move
             let distance = entity.distance;
@@ -399,6 +403,40 @@ class Enemy2D extends IAM {
                 entity.makeMove();
             }
         }
+    }
+
+    enemy_enemy_collision_resolution(entity, map, lapsedTime) {
+        const ThisGrid = entity.moveState.homeGrid;
+        const EndGrid = entity.moveState.endGrid;
+        const Indices = map[this.IA].unroll(ThisGrid);
+        if (!GRID.same(ThisGrid, EndGrid)) {
+            let add = map[this.IA].unroll(EndGrid);
+            Indices.splice(0, -1, ...add);
+        }
+        let setIndices = new Set(Indices);
+        setIndices.delete(entity.id);
+        const FilteredIndices = Array.from(setIndices);
+        let wait = false;
+        entity.sprite.getArea();
+
+        if (FilteredIndices.length > 0) {
+
+            for (let e of FilteredIndices) {
+                const compareEntity = this.POOL[e - 1];
+                if (compareEntity.petrified) continue;
+                const EE_hit = entity.sprite.area.overlap(compareEntity.sprite.area);
+                if (EE_hit && compareEntity.distance < entity.distance) {
+                    wait = true;
+                    entity.waiting = true;
+                    entity.manage(lapsedTime);
+                    if (IndexArrayManagers.VERBOSE) console.info(`${entity.name}-${entity.id} waiting to continue turn`);
+                    break;
+                }
+            }
+
+            if (wait) return true;
+        }
+        return false;
     }
 }
 

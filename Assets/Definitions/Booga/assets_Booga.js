@@ -53,10 +53,12 @@ LoadTextures = [
     //masks
     { srcName: "Mask/mask_level_1.webp", name: "mask_level_1" },
     { srcName: "Mask/mask_level_2.webp", name: "mask_level_2" },
+    { srcName: "Mask/mask_level_3.webp", name: "mask_level_3" },
 
     //screens
     { srcName: "Mask/final_level_1.webp", name: "final_level_1" },
     { srcName: "Mask/final_level_2.webp", name: "final_level_2" },
+    { srcName: "Mask/final_level_3.webp", name: "final_level_3" },
 
 ];
 

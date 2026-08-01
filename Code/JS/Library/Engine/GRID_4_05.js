@@ -384,6 +384,7 @@ const GRID = {
         if (changeView) ENGINE.VIEWPORT.check(sprite.pos);
 
         ENGINE.VIEWPORT.alignToPosition(sprite.pos, sprite.vPos);
+        entity.moveState.reset(sprite.getGrid());                       //keep moveState updated for collisions
 
         if (result.finished) {
             motion.deactivate();

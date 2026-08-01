@@ -4258,7 +4258,6 @@ class MoveState {
         this.dir = dir || null;
         this.homeGrid = Grid.toClass(startGrid);
         this.endGrid = Grid.toClass(startGrid);
-        //this.pos = pos || this.homeGrid;                                 //compatibility with 3D MS
         this.pos = pos || FP_Grid.toClass(this.homeGrid);                 //compatibility with 3D MS
         this.moving = false;
         this.gridArray = null;
