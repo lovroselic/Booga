@@ -21,8 +21,8 @@ retests:
 
 const DEBUG = {
     SETTING: true,
-    FPS: true,
-    VERBOSE: true,
+    FPS: false,
+    VERBOSE: false,
     _2D_display: false,
     INVINCIBLE: false,
     keys: false,
@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.8.1",
+    VERSION: "0.9.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -337,7 +337,7 @@ const HERO = {
                     ENGINE.adjustYToWallEdge(maskdata, contact.translate(RIGHT, INI.FEET))
                 ];
 
-                console.info(".surface, contact", contact, "feet", feet);
+                //console.info(".surface, contact", contact, "feet", feet);
                 const Y = [feet[0].y, contact.y, feet[1].y];
                 const lined = (Math.max(...Y) - Math.min(...Y)) <= INI.PLANE_Y_TOLERANCE;               //tolerance, set to INI
                 console.info("..Y", Y, "lined", lined);
@@ -345,18 +345,17 @@ const HERO = {
 
                 if (lined) {
                     // this is a stable ground
-                    console.log("... stable");
+                    //console.log("... stable");
                     this.setMode("idle", UP);
                     origin = ENGINE.adjustYToWallEdge(maskdata, origin);
                     origin.y--;                                                 //one px up, out of wall
                     const finalSafePos = Point.rounded(origin.translate(UP, gs2));
-                    //console.info("....origin untransformed", origin, "transformed", finalSafePos);
-                    this.paintLanding([contact, ...feet]); //debug
+                    //this.paintLanding([contact, ...feet]); //debug
 
                     return { finished: true, pos: finalSafePos, };
                 } else {
                     //not stable ground
-                    console.log("... unstable");
+                    //console.log("... unstable");
 
                     let slideDir;
                     if (feet[0].y < feet[1].y) {
@@ -384,7 +383,7 @@ const HERO = {
 
                     this.setMode("sliding", slideDir);
                     motion.setType("sliding");
-                    this.paintLanding([contact, ...feet]); //debug
+                    //this.paintLanding([contact, ...feet]); //debug
                     return { finished: false, pos: context.candidatePos, };
                 }
 
@@ -401,7 +400,7 @@ const HERO = {
         }
     },
     handleFinishedJump(result) {
-        console.error("handleFinishedJump", result);
+        //console.error("handleFinishedJump", result);
         const sprite = this.player.sprite;
         const grid = sprite.getGrid();
         this.player.moveState.reset(grid);
@@ -445,7 +444,7 @@ const GAME = {
         ENGINE.GAME.setGameLoop(GAME.run);
         ENGINE.GAME.start(16);
         GAME.extraLife = SCORE.extraLife.clone();
-        GAME.level = 3; //1
+        GAME.level = 1; //1
         GAME.lives = 3; //3
         GAME.score = 0;
 
