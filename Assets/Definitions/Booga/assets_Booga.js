@@ -67,7 +67,7 @@ LoadAudio = [
     { srcName: "death.mp3", name: "Death" },
     { srcName: "Level up.mp3", name: "LevelUp" },
     { srcName: "thud.mp3", name: "Thud" },
-
+    { srcName: "Chew.mp3", name: "Chew" },
 ];
 
 LoadShaders = [

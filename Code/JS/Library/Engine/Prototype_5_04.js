@@ -197,8 +197,6 @@ changelog:
         return Bases;
     }
 
-
-
     /*
     function Classes(bases) {
         class Bases {

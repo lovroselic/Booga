@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <!-- bootstrap, css -->
-    <meta charset="UTF-8">
-    <link href="/CSS/bootstrap.min.css" rel="stylesheet" type="text/css">
-    <link href="/CSS/LaughingStyle.css" rel="stylesheet" type="text/css">
-
-    <!-- END -->
-
-    <title>Booga</title>
-</head>
-
-<body>
-
     <!-- copy start-->
     <div id="preload" class="hidden"></div>
     <div class="container my-5 p-5 cool_page">
@@ -168,24 +152,3 @@
         <div id="temp2" class="hidden"></div>
     </div>
     <!-- COPY END -->
-
-    <!-- External JS -->
-    <script src="/External/bootstrap.bundle.min.js"></script>
-    <script src="/External/jquery-3.6.0.min.js"></script>
-    <script src="/External/gl-matrix-min.js" type="text/javascript"></script>
-    <!-- JS -->
-    <script src="/Code/JS/Library/Engine/Prototype_6_00.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Engine/ENGINE_5_04.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Engine/GRID_4_05.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Engine/MAZE_5_00.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Engine/BWT_1_00.js" type="text/javascript"></script>
-    <script src='/Code/JS/Library/Engine/IndexArrayManagers_4_03.js'></script>
-    <script src='/Code/JS/Library/Engine/AI_3_02.js'></script>
-    <script src="/Code/JS/Library/Engine/WebGL_2_04.js" type="text/javascript"></script>
-    <script src="/Assets/Definitions/Booga/assets_Booga.js" type="text/javascript"></script>
-    <script src="/Assets/Definitions/Booga/MAP_Booga.js" type="text/javascript"></script>
-    <script src="/Assets/Definitions/Booga/Monsters_Booga.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Engine/MAP and SPAWN tools_3_00.js" type="text/javascript"></script>
-    <script src="/Code/JS/Library/Misc/score_1_05.js" type="text/javascript"></script>
-    <script src="/Games/Booga/Booga.js" type="text/javascript"></script>
-</body>

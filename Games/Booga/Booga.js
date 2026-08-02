@@ -47,7 +47,7 @@ const INI = {
 };
 
 const PRG = {
-    VERSION: "0.10.0",
+    VERSION: "0.90.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -190,7 +190,7 @@ const HERO = {
         ENGINE.GAME.ANIMATION.stop();
         GAME.lives--;
         if (DEBUG.VERBOSE) console.red(`HERO.death, lives: ${GAME.lives}`);
-        //await AUDIO_TOOLS.waitUntilEnded(AUDIO.Splash);
+        await AUDIO_TOOLS.playAndWait(AUDIO.Chew);
         await AUDIO_TOOLS.playAndWait(AUDIO.Death);
         HERO.finalDeath();
     },
@@ -221,24 +221,19 @@ const HERO = {
         if (GAME.time) GAME.time.unregister();
         if (DEBUG.VERBOSE) console.note("playerSetUp, HERO set to start grid");
     },
-    handleHoleMove(grid) {
-        //not applicable
-    },
+    handleHoleMove(grid) { },
     getWho(grid) {
         const map = MAP.main.map;
         const IA = map.enemyIA;
         const who = IA.unroll(grid)[0] || null;     //expected only one
         return who;
     },
-    handleEmptyMove(grid) {
-        //not applicable
-    },
+    handleEmptyMove(grid) { },
     handleMaskMove(grid) { },
     handleReservedMove(grid) {
         GAME.score += INI.SCORE_GOAL;
         TITLE.score();
         GAME.timeRemains = GAME.time.remains();
-        console.log("time remain", GAME.timeRemains);
         HERO.player.sprite.hide();
         GAME.time.stop();
         GAME.time.deactivate();
@@ -255,12 +250,8 @@ const HERO = {
             TITLE.score();
         }
     },
-    handleOutOfBounds() {
-        //not applicable
-    },
-    handleCarry() {
-        //not applicable
-    },
+    handleOutOfBounds() { },
+    handleCarry() { },
     handleMove(dir) {
         if (dir.y !== 0) return;                                    // x-only
         if (!["idle", "side"].includes(this.mode)) return;          // only selected modes
@@ -271,7 +262,6 @@ const HERO = {
         this.setMode("side", this.jumpDir);
     },
     handleNothingWasPressed() {
-        //console.warn("handleNothingWasPressed", this.mode, this.jumpPower, "this.player.motion", this.player.motion);
         if (this.mode !== "side") return;
         if (this.jumpPower <= 0) return;
 
@@ -283,7 +273,6 @@ const HERO = {
     },
     performJump() {
         if (this.player.motion.active) return;
-        //console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);
         const speed = this.jumpPower * INI.JUMP_SPEED_FACTOR;
         const component = speed * Math.SQRT1_2;                     // cos(45°) and sin(45°)
         const mode = "jumping";
@@ -292,12 +281,6 @@ const HERO = {
         this.player.motion.setVelocity({ x: this.jumpDir.x * component, y: -component });
         this.player.motion.setAcceleration({ x: 0, y: INI.GRAVITY });
         this.player.motion.activate();
-
-        /*console.info(
-            "Jump started:",
-            "power", this.jumpPower,
-            "velocity", this.player.motion.velocity
-        );*/
     },
     handlePositionCollision(context) {
         const entity = context.entity;
@@ -307,13 +290,10 @@ const HERO = {
         const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * GRID.SETTING.WALL_COLLISION_TOLERANCE;
         let origin = Point.rounded(context.currentPos.translate(DOWN, gs2));
         let candidate = Point.rounded(context.candidatePos.translate(DOWN, gs2));
-        //console.warn("Position collision", context, "contact", contact);
-
         const type = context.collision.type;
 
         switch (type) {
             case "blocked":
-                //console.info(".blocked");
                 motion.velocity.x = 0;                                                                      // stop side movement
                 motion.velocity.y = Math.abs(motion.velocity.y);                                            // keep speed down or revert from up
                 this.setMode("falling", DOWN);
@@ -322,7 +302,6 @@ const HERO = {
                 return { finished: false, pos: context.currentPos, };
 
             case "unsupported":
-                //console.info(".unsupported");
                 motion.velocity.x = 0;
                 motion.velocity.y = Math.abs(motion.velocity.y);
                 this.setMode("falling", DOWN);
@@ -331,38 +310,29 @@ const HERO = {
                 return { finished: false, pos: context.candidatePos, };
 
             case "surface":
-                contact = ENGINE.adjustYToWallEdge(maskdata, contact);                                     // adjust
+                contact = ENGINE.adjustYToWallEdge(maskdata, contact);                                      // adjust
                 const feet = [
                     ENGINE.adjustYToWallEdge(maskdata, contact.translate(LEFT, INI.FEET)),
                     ENGINE.adjustYToWallEdge(maskdata, contact.translate(RIGHT, INI.FEET))
                 ];
 
-                //console.info(".surface, contact", contact, "feet", feet);
                 const Y = [feet[0].y, contact.y, feet[1].y];
-                const lined = (Math.max(...Y) - Math.min(...Y)) <= INI.PLANE_Y_TOLERANCE;               //tolerance, set to INI
-                //console.info("..Y", Y, "lined", lined);
+                const lined = (Math.max(...Y) - Math.min(...Y)) <= INI.PLANE_Y_TOLERANCE;                   //tolerance, set to INI
 
 
                 if (lined) {
-                    // this is a stable ground
-                    //console.log("... stable");
                     this.setMode("idle", UP);
                     origin = ENGINE.adjustYToWallEdge(maskdata, origin);
-                    origin.y--;                                                 //one px up, out of wall
+                    origin.y--;                                                                             //one px up, out of wall
                     const finalSafePos = Point.rounded(origin.translate(UP, gs2));
-                    //this.paintLanding([contact, ...feet]); //debug
-
                     return { finished: true, pos: finalSafePos, };
                 } else {
-                    //not stable ground
-                    //console.log("... unstable");
-
                     let slideDir;
                     if (feet[0].y < feet[1].y) {
                         slideDir = RIGHT;
                     } else if (feet[0].y > feet[1].y) {
                         slideDir = LEFT;
-                    } else slideDir = [LEFT, RIGHT].chooseRandom();         // Symmetrical or ambiguous surface: choose a direction.
+                    } else slideDir = [LEFT, RIGHT].chooseRandom();                                         // Symmetrical or ambiguous surface: choose random direction.
 
                     motion.velocity.y = Math.max(Math.abs(motion.velocity.y), INI.MIN_SLIDE_SPEED);
                     motion.velocity.x = motion.velocity.y * slideDir.x;
@@ -378,12 +348,11 @@ const HERO = {
                             Math.abs(contact.y - feet[0].y) <= INI.PLANE_Y_TOLERANCE
                         )
                     ) {
-                        motion.velocity.y = 0;                              // slide horizontally
+                        motion.velocity.y = 0;                                                              // slide horizontally
                     }
 
                     this.setMode("sliding", slideDir);
                     motion.setType("sliding");
-                    //this.paintLanding([contact, ...feet]); //debug
                     return { finished: false, pos: context.candidatePos, };
                 }
 
@@ -400,7 +369,6 @@ const HERO = {
         }
     },
     handleFinishedJump(result) {
-        //console.error("handleFinishedJump", result);
         const sprite = this.player.sprite;
         const grid = sprite.getGrid();
         this.player.moveState.reset(grid);
