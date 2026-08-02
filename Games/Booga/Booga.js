@@ -43,11 +43,11 @@ const INI = {
     SCORE_ROW: 1,               // score for getting higher
     MAX_ROW: 40,                // hardconfig
     LEVEL_TIME: 120,            // time to finish the level and get bonus: default 120
-    SCORE_PER_SECOND: 20,       // score per second if befor timeout
+    SCORE_PER_SECOND: 20,       // score per second if before timeout
 };
 
 const PRG = {
-    VERSION: "0.9.0",
+    VERSION: "0.10.0",
     NAME: "Booga",
     YEAR: "2026",
     SG: "Booga",
@@ -271,7 +271,7 @@ const HERO = {
         this.setMode("side", this.jumpDir);
     },
     handleNothingWasPressed() {
-        //console.warn("handleNothingWasPressed");
+        //console.warn("handleNothingWasPressed", this.mode, this.jumpPower, "this.player.motion", this.player.motion);
         if (this.mode !== "side") return;
         if (this.jumpPower <= 0) return;
 
@@ -283,7 +283,7 @@ const HERO = {
     },
     performJump() {
         if (this.player.motion.active) return;
-        console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);
+        //console.error("jumping, power", this.jumpPower, "dir", this.jumpDir);
         const speed = this.jumpPower * INI.JUMP_SPEED_FACTOR;
         const component = speed * Math.SQRT1_2;                     // cos(45°) and sin(45°)
         const mode = "jumping";
@@ -293,11 +293,11 @@ const HERO = {
         this.player.motion.setAcceleration({ x: 0, y: INI.GRAVITY });
         this.player.motion.activate();
 
-        console.info(
+        /*console.info(
             "Jump started:",
             "power", this.jumpPower,
             "velocity", this.player.motion.velocity
-        );
+        );*/
     },
     handlePositionCollision(context) {
         const entity = context.entity;
@@ -307,13 +307,13 @@ const HERO = {
         const gs2 = (ENGINE.INI.GRIDPIX >>> 1) * GRID.SETTING.WALL_COLLISION_TOLERANCE;
         let origin = Point.rounded(context.currentPos.translate(DOWN, gs2));
         let candidate = Point.rounded(context.candidatePos.translate(DOWN, gs2));
-        console.warn("Position collision", context, "contact", contact);
+        //console.warn("Position collision", context, "contact", contact);
 
         const type = context.collision.type;
 
         switch (type) {
             case "blocked":
-                console.info(".blocked");
+                //console.info(".blocked");
                 motion.velocity.x = 0;                                                                      // stop side movement
                 motion.velocity.y = Math.abs(motion.velocity.y);                                            // keep speed down or revert from up
                 this.setMode("falling", DOWN);
@@ -322,7 +322,7 @@ const HERO = {
                 return { finished: false, pos: context.currentPos, };
 
             case "unsupported":
-                console.info(".unsupported");
+                //console.info(".unsupported");
                 motion.velocity.x = 0;
                 motion.velocity.y = Math.abs(motion.velocity.y);
                 this.setMode("falling", DOWN);
@@ -340,7 +340,7 @@ const HERO = {
                 //console.info(".surface, contact", contact, "feet", feet);
                 const Y = [feet[0].y, contact.y, feet[1].y];
                 const lined = (Math.max(...Y) - Math.min(...Y)) <= INI.PLANE_Y_TOLERANCE;               //tolerance, set to INI
-                console.info("..Y", Y, "lined", lined);
+                //console.info("..Y", Y, "lined", lined);
 
 
                 if (lined) {
@@ -469,6 +469,7 @@ const GAME = {
         GAME.clearPools();
         SPAWN_TOOLS_2D.spawn(level);
         HERO.dead = false;
+        HERO.setMode();
         HERO.playerSetUp();
         GAME.setCameraView();
         GAME.setWorld();

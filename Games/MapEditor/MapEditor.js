@@ -34,6 +34,7 @@ const INI = {
     USE_SAVEGAME: false,
     USE_3D: false,
     USE_WORLD: false,
+    USE_SPAWN: false,
 };
 
 const MAP = {
@@ -75,7 +76,7 @@ const $MAP = {
 };
 
 const PRG = {
-    VERSION: "0.20.2",
+    VERSION: "0.20.3",
     NAME: "MapEditor",
     YEAR: "2026",
     CSS: "color: #239AFF;",
@@ -2070,7 +2071,7 @@ data: '${JSON.stringify(Export)}',`;
 sg: ${SG},`
         }
 
-        if (INI.USE_MONSTERS) {
+        if (INI.USE_MONSTERS && INI.USE_SPAWN) {
             roomExport += `
 maxSpawned: ${MaxSpawned},
 killCountdown: ${KillCountdown},
